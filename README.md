@@ -21,9 +21,16 @@ có công thức toán (MathType / công thức Word) và hình vẽ/đồ thị
   nếu cần (qua LibreOffice), và chèn lại **đúng vị trí** bằng
   `\includegraphics` — giữ nguyên hình gốc, không vẽ lại.
 - **Nhận diện 3 dạng câu hỏi**:
-  - Trắc nghiệm 4 đáp án: các dòng bắt đầu `A.`/`B.`/`C.`/`D.` (hoặc `A)`...).
-  - Đúng/Sai (4 ý): các dòng bắt đầu `a)`/`b)`/`c)`/`d)` (chữ thường).
+  - Trắc nghiệm 4 đáp án: các dòng/đoạn bắt đầu `A.`/`B.`/`C.`/`D.` (hoặc
+    `A)`...) — kể cả khi 2-4 phương án nằm chung 1 dòng, cách nhau bởi Tab
+    (`A. ...\tB. ...\tC. ...\tD. ...`), rất hay gặp trong đề thi thực tế.
+  - Đúng/Sai (4 ý): các dòng/đoạn bắt đầu `a)`/`b)`/`c)`/`d)` (chữ thường),
+    cũng hỗ trợ nhiều ý chung 1 dòng cách nhau bởi Tab.
   - Trả lời ngắn: câu hỏi không có các nhãn trên.
+  - Số thứ tự câu hỏi được nhận diện bằng CẢ HAI cách: gõ tay `Câu 1:` lẫn
+    đánh số tự động của Word (list numbering) - chỉ bật cách thứ hai sau
+    khi gặp tiêu đề `PHẦN I/II/III...` để không nhầm với các danh sách số
+    khác trong tài liệu (ví dụ gạch đầu dòng lý thuyết).
   - Xuất thành 3 phần đúng theo cấu trúc đề thi TN THPT hiện hành, đánh
     số lại từ 1 trong mỗi phần, kèm **bảng đáp án** ở cuối file.
 
@@ -31,8 +38,19 @@ có công thức toán (MathType / công thức Word) và hình vẽ/đồ thị
 
 ```bash
 pip install -r requirements.txt
-# (tuỳ chọn nhưng khuyến nghị) cài LibreOffice để chuyển ảnh WMF/EMF sang PNG
 ```
+
+Cần cài thêm **LibreOffice** (dùng để chuyển ảnh WMF/EMF sang PNG - rất
+hay gặp vì đó là định dạng ảnh xem trước mặc định của MathType/Equation
+Editor):
+
+```bash
+sudo apt-get install libreoffice-writer libreoffice-draw
+```
+
+(Chỉ cài gói `libreoffice-core` mặc định trên một số máy chủ/container là
+**không đủ** — nó thiếu bộ lọc đọc/ghi định dạng file, khiến việc chuyển
+đổi ảnh báo lỗi "source file could not be loaded".)
 
 ## Cách dùng
 
@@ -70,11 +88,19 @@ Kết quả:
 - Công thức MathType OLE cổ điển: chỉ giải mã trực tiếp được biểu thức
   đơn giản gồm ký tự ASCII liên tiếp; công thức có phân số/căn/mũ/ký hiệu
   đặc biệt sẽ dùng ảnh xem trước (không sai, nhưng không phải LaTeX gõ
-  được). Khuyến khích dùng chế độ "Insert Equation" gốc của Word (hoặc để
-  MathType chèn ở chế độ tương thích Office) để có LaTeX chính xác 100%.
+  được), chèn **ngay trong dòng** để giữ mạch văn. Vì kích thước hiển thị
+  dựa trên khung ảnh đã cắt gọn (không có thông tin cỡ chữ gốc trong
+  Word), một vài công thức có thể to/nhỏ hơn văn bản xung quanh một chút -
+  không sai nội dung, chỉ lệch nhẹ về mặt trình bày. Khuyến khích dùng chế
+  độ "Insert Equation" gốc của Word (hoặc để MathType chèn ở chế độ tương
+  thích Office) để có LaTeX chính xác 100%.
 - Bảng (table) trong Word được đọc theo từng ô nối tiếp nhau, chưa dựng
   lại thành bảng LaTeX.
-- Cần kiểm tra lại các câu công cụ báo "chưa xác định được đáp án".
+- Nếu tài liệu có nhiều đề/nhiều lần lặp lại tiêu đề "PHẦN I/II/III" (ví
+  dụ 1 file chứa nhiều đề luyện tập), công cụ hiện gộp tất cả câu cùng
+  dạng vào chung 1 danh sách (không tách thành các đề riêng).
+- Cần kiểm tra lại các câu công cụ báo "chưa xác định được đáp án" (rất
+  hay gặp với các bản đề dành cho học sinh - không có sẵn đáp án).
 
 ## Cấu trúc mã nguồn
 
