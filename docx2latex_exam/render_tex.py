@@ -179,15 +179,19 @@ PREAMBLE = r"""\documentclass[12pt,a4paper]{article}
 def render_document(exam: ExamDocument) -> str:
     out = [PREAMBLE, r"\begin{document}", ""]
 
-    if exam.intro:
-        out.append(r"\begin{center}")
-        intro_lines = []
-        for p in exam.intro:
-            if p.is_empty():
-                continue
-            intro_lines.append(r"{\bfseries %s}" % render_nodes(p.nodes))
-        out.append(" \\\\\n".join(intro_lines))
-        out.append(r"\end{center}")
+    intro_content = [p for p in exam.intro if not p.is_empty()]
+    if intro_content:
+        if len(intro_content) <= 6:
+            # De thi ngan gon: vai dong tieu de -> in dam, can giua (quoc
+            # hieu, ten truong, ten de thi...).
+            out.append(r"\begin{center}")
+            out.append(" \\\\\n".join(r"{\bfseries %s}" % render_nodes(p.nodes) for p in intro_content))
+            out.append(r"\end{center}")
+        else:
+            # Tai lieu co nhieu noi dung truoc cau hoi dau tien (vi du bai
+            # giang ly thuyet kem cong thuc) -> giu nguyen dang van ban
+            # thuong, khong in dam/can giua toan bo.
+            out.append(render_paragraphs(intro_content))
         out.append(r"\vspace{1em}")
         out.append("")
 
