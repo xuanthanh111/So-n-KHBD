@@ -6,6 +6,7 @@ requires-python = ">=3.9"
 dependencies = [
     "lxml>=4.9",
     "olefile>=0.47",
+    "Pillow>=9.0",
 ]
 
 [project.scripts]

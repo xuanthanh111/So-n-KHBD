@@ -58,6 +58,35 @@ def _run_soffice(files: List[Path], out_dir: Path, timeout: int):
     )
 
 
+def _autocrop(path: Path) -> None:
+    """LibreOffice xuat WMF/EMF sang PNG bang ca 1 trang A4 (~794x1123px)
+    voi hinh ve/cong thuc thuc su chi chiem 1 vung nho o giua - neu khong
+    cat bo phan trang trong/trang thua, khi thu nho cong thuc ve co chu
+    (vi du chen inline) no gan nhu bien mat. Cat theo vung khac nen
+    (trong suot hoac trang)."""
+    try:
+        from PIL import Image, ImageChops
+    except ImportError:
+        return
+    try:
+        im = Image.open(path).convert("RGBA")
+    except Exception:
+        return
+    bbox = im.split()[-1].getbbox()  # vung khong trong suot
+    if bbox is None:
+        bg = Image.new("RGBA", im.size, (255, 255, 255, 255))
+        bbox = ImageChops.difference(im.convert("RGB").convert("RGBA"), bg).getbbox()
+    if not bbox or bbox == (0, 0, im.width, im.height):
+        return
+    pad = 3
+    left, top, right, bottom = bbox
+    left = max(0, left - pad)
+    top = max(0, top - pad)
+    right = min(im.width, right + pad)
+    bottom = min(im.height, bottom + pad)
+    im.crop((left, top, right, bottom)).save(path)
+
+
 def convert_batch(paths: Iterable[Path], out_dir: Path, chunk_size: int = 150,
                    timeout: int = 900) -> Dict[str, Path]:
     """Chuyen mot loat file WMF/EMF sang PNG trong out_dir. Tra ve dict
@@ -84,6 +113,7 @@ def convert_batch(paths: Iterable[Path], out_dir: Path, chunk_size: int = 150,
     for p in todo:
         target = out_dir / (p.stem + ".png")
         if target.exists() and _is_valid_png(target):
+            _autocrop(target)
             result[str(p)] = target
         else:
             retry.append(p)
@@ -97,6 +127,7 @@ def convert_batch(paths: Iterable[Path], out_dir: Path, chunk_size: int = 150,
             target.unlink()
         _run_soffice([p], out_dir, timeout=60)
         if target.exists() and _is_valid_png(target):
+            _autocrop(target)
             result[str(p)] = target
     return result
 
