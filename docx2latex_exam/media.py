@@ -102,13 +102,28 @@ def convert_batch(paths: Iterable[Path], out_dir: Path, chunk_size: int = 150,
 
 
 def copy_plain(paths: Iterable[Path], out_dir: Path) -> Dict[str, Path]:
-    """Copy nguyen ban cac anh khong can chuyen doi (png/jpg/...) vao out_dir."""
+    """Copy nguyen ban cac anh khong can chuyen doi (png/jpg/...) vao out_dir.
+
+    File .docx thuc te doi khi da chua san 1 anh PNG bi hong tu truoc (loi
+    khi luu/paste trong Word, khong lien quan gi den cong cu nay) - PNG hong
+    se khien xelatex/libpng THOAT DOT NGOT khi bien dich, nen can kiem tra
+    va thu "sua" bang cach cho LibreOffice doc lai roi xuat PNG moi; neu
+    khong sua duoc thi bo qua anh do (khong chen vao .tex) thay vi lam
+    hong ca file bien dich."""
     out_dir.mkdir(parents=True, exist_ok=True)
     result: Dict[str, Path] = {}
     for p in dict.fromkeys(paths):
         target = out_dir / p.name
         if not target.exists():
             shutil.copyfile(p, target)
+        if target.suffix.lower() == ".png" and not _is_valid_png(target):
+            if _soffice is not None:
+                target.unlink()
+                _run_soffice([p], out_dir, timeout=60)
+            if not target.exists() or not _is_valid_png(target):
+                if target.exists():
+                    target.unlink()
+                continue  # khong sua duoc - bo qua, khong dua anh hong vao .tex
         result[str(p)] = target
     return result
 
