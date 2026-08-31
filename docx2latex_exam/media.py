@@ -72,10 +72,20 @@ def _autocrop(path: Path) -> None:
         im = Image.open(path).convert("RGBA")
     except Exception:
         return
-    bbox = im.split()[-1].getbbox()  # vung khong trong suot
-    if bbox is None:
-        bg = Image.new("RGBA", im.size, (255, 255, 255, 255))
-        bbox = ImageChops.difference(im.convert("RGB").convert("RGBA"), bg).getbbox()
+    alpha_min, alpha_max = im.split()[-1].getextrema()
+    bbox = None
+    if alpha_min < 255:
+        # co it nhat 1 diem trong/mot phan trong suot -> dung kenh alpha de cat
+        bbox = im.split()[-1].getbbox()
+    if not bbox:
+        # anh khong co vung trong suot thuc su (VD LibreOffice xuat ca
+        # trang A4 nen trang duc) -> cat theo vung khac nen trang. Dung
+        # RGB (bo kenh alpha) vi getbbox() tren RGBA yeu cau CA 4 kenh
+        # khac 0 tai 1 diem moi tinh la "co noi dung", ma kenh alpha
+        # thuong giong het nhau (deu 255) nen luon tra ve None.
+        rgb = im.convert("RGB")
+        bg = Image.new("RGB", im.size, (255, 255, 255))
+        bbox = ImageChops.difference(rgb, bg).getbbox()
     if not bbox or bbox == (0, 0, im.width, im.height):
         return
     pad = 3
