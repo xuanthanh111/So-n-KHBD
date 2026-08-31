@@ -80,18 +80,22 @@ def _render_math(n: MathNode) -> str:
 
 
 def render_nodes(nodes: List) -> str:
-    """Render mot day node lien tuc thanh LaTeX; anh chen dang khoi rieng
-    (giu dung vi tri nhung ngat dong van ban, giong the hien thuc te trong
-    tai lieu Word ban dau)."""
+    """Render mot day node lien tuc thanh LaTeX; anh la hinh ve/do thi
+    chen dang khoi rieng (ngat doan), con anh la cong thuc fallback thi
+    chen ngay trong dong de giu mach van."""
     out = []
+    has_inline_content = False  # de biet \\ (xuong dong) co dang hop le hay khong
     for n in nodes:
         if isinstance(n, TextRun):
             out.append(_render_run(n))
+            has_inline_content = True
         elif isinstance(n, MathNode):
             out.append(_render_math(n))
+            has_inline_content = True
         elif isinstance(n, ImageNode):
             if not n.path:
                 out.append(r"\textit{[khong doc duoc hinh/cong thuc goc]}")
+                has_inline_content = True
             elif n.caption == "cong-thuc-mathtype":
                 # Cong thuc MathType roi vao anh (khong giai ma duoc MTEF):
                 # chen NGAY TRONG DONG (khong ngat doan) de giu mach van,
@@ -101,13 +105,17 @@ def render_nodes(nodes: List) -> str:
                     r"\raisebox{-0.15\height}{\includegraphics[height=1.05\baselineskip]{%s}}"
                     % n.path
                 )
+                has_inline_content = True
             else:
                 out.append(
                     "\n\\begin{center}\n\\includegraphics[width=0.45\\linewidth]{%s}\n\\end{center}\n"
                     % n.path
                 )
+                has_inline_content = False  # sau khoi rieng, \\ (neu co) la khong hop le
         elif isinstance(n, LineBreak):
-            out.append("\\\\\n")
+            if has_inline_content:
+                out.append("\\\\\n")
+                has_inline_content = False
     return "".join(out)
 
 
