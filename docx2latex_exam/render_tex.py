@@ -90,13 +90,22 @@ def render_nodes(nodes: List) -> str:
         elif isinstance(n, MathNode):
             out.append(_render_math(n))
         elif isinstance(n, ImageNode):
-            if n.path:
+            if not n.path:
+                out.append(r"\textit{[khong doc duoc hinh/cong thuc goc]}")
+            elif n.caption == "cong-thuc-mathtype":
+                # Cong thuc MathType roi vao anh (khong giai ma duoc MTEF):
+                # chen NGAY TRONG DONG (khong ngat doan) de giu mach van,
+                # vi day thuong la 1 bieu thuc nho nam giua cau chu khong
+                # phai hinh ve/do thi rieng.
+                out.append(
+                    r"\raisebox{-0.15\height}{\includegraphics[height=1.05\baselineskip]{%s}}"
+                    % n.path
+                )
+            else:
                 out.append(
                     "\n\\begin{center}\n\\includegraphics[width=0.45\\linewidth]{%s}\n\\end{center}\n"
                     % n.path
                 )
-            else:
-                out.append(r"\textit{[khong doc duoc hinh/cong thuc goc]}")
         elif isinstance(n, LineBreak):
             out.append("\\\\\n")
     return "".join(out)
