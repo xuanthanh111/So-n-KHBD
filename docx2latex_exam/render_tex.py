@@ -90,10 +90,13 @@ def render_nodes(nodes: List) -> str:
         elif isinstance(n, MathNode):
             out.append(_render_math(n))
         elif isinstance(n, ImageNode):
-            out.append(
-                "\n\\begin{center}\n\\includegraphics[width=0.45\\linewidth]{%s}\n\\end{center}\n"
-                % n.path
-            )
+            if n.path:
+                out.append(
+                    "\n\\begin{center}\n\\includegraphics[width=0.45\\linewidth]{%s}\n\\end{center}\n"
+                    % n.path
+                )
+            else:
+                out.append(r"\textit{[khong doc duoc hinh/cong thuc goc]}")
         elif isinstance(n, LineBreak):
             out.append("\\\\\n")
     return "".join(out)

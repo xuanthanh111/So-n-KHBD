@@ -7,7 +7,7 @@ from typing import Dict, List, Optional
 
 from lxml import etree
 
-from . import mtef, ole, media
+from . import mtef, ole
 from .model import ImageNode, LineBreak, MathNode, Paragraph, TextRun
 from .omml2latex import omml_to_latex
 
@@ -72,12 +72,10 @@ class DocxDocument:
         return p if p.exists() else None
 
     def _image_node(self, src: Path) -> ImageNode:
-        try:
-            final = media.ensure_latex_compatible(src, self.images_dir)
-        except Exception as exc:  # LibreOffice khong co san, ...
-            self.warnings.append(str(exc))
-            final = src
-        return ImageNode(path=str(final))
+        """Chi luu duong dan GOC o day; viec chuyen WMF/EMF -> PNG duoc
+        gom lai va lam theo lo (batch) o pipeline.py de nhanh hon nhieu
+        khi tai lieu co hang tram/nghin cong thuc (moi cong thuc la 1 anh)."""
+        return ImageNode(path=str(src))
 
     # ------------------------------------------------------------------
     def paragraphs(self):

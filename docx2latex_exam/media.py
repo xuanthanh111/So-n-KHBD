@@ -1,13 +1,18 @@
 """Chuyen doi anh WMF/EMF (dinh dang Windows Metafile hay dung cho preview
 cong thuc MathType va mot so hinh ve chen tu clipboard) sang PNG, dung
 LibreOffice headless - vi pdflatex/xelatex khong doc truc tiep duoc WMF/EMF.
-Anh JPG/PNG/GIF... khong can chuyen, giu nguyen (khong ve lai)."""
+Anh JPG/PNG/GIF... khong can chuyen, giu nguyen (khong ve lai).
+
+Mot de thi thuc te co the co hang nghin cong thuc MathType (moi cong thuc =
+1 anh WMF preview). Goi soffice rieng cho tung file se rat cham (moi lan
+khoi dong LibreOffice ton 1-2s). Vi vay ham convert_batch() gom nhieu file
+vao MOT (hoac vai) lan goi soffice duy nhat."""
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Dict, Iterable, List
 
 CONVERTIBLE = {".wmf", ".emf"}
-NATIVE = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".pdf"}
 
 _soffice = shutil.which("soffice") or shutil.which("libreoffice")
 
@@ -16,35 +21,48 @@ def needs_conversion(path: Path) -> bool:
     return path.suffix.lower() in CONVERTIBLE
 
 
-def convert_to_png(src: Path, out_dir: Path) -> Path:
-    """Tra ve duong dan PNG da chuyen. Neu khong co LibreOffice, gan lai
-    duoi .png (nguoi dung tu chuyen bang cong cu khac) va bao loi ro rang."""
+def convert_batch(paths: Iterable[Path], out_dir: Path, chunk_size: int = 150,
+                   timeout: int = 900) -> Dict[str, Path]:
+    """Chuyen mot loat file WMF/EMF sang PNG trong out_dir. Tra ve dict
+    {duong_dan_goc (str): duong_dan_png}. Bo qua (khong loi) neu khong
+    tim thay LibreOffice - goi sau se tu phat hien anh chua duoc chuyen."""
     out_dir.mkdir(parents=True, exist_ok=True)
-    target = out_dir / (src.stem + ".png")
-    if target.exists():
-        return target
-    if _soffice is None:
-        raise RuntimeError(
-            f"Khong tim thay LibreOffice (soffice) de chuyen doi {src.name} sang PNG. "
-            "Hay cai libreoffice hoac tu chuyen doi file nay bang tay."
+    paths = list(dict.fromkeys(paths))  # bo trung, giu thu tu
+    result: Dict[str, Path] = {}
+    todo: List[Path] = []
+    for p in paths:
+        target = out_dir / (p.stem + ".png")
+        if target.exists():
+            result[str(p)] = target
+        else:
+            todo.append(p)
+    if not todo or _soffice is None:
+        return result
+    for i in range(0, len(todo), chunk_size):
+        chunk = todo[i:i + chunk_size]
+        subprocess.run(
+            [_soffice, "--headless", "--convert-to", "png", "--outdir", str(out_dir)]
+            + [str(p) for p in chunk],
+            check=False, capture_output=True, timeout=timeout,
         )
-    subprocess.run(
-        [_soffice, "--headless", "--convert-to", "png", "--outdir", str(out_dir), str(src)],
-        check=True, capture_output=True, timeout=60,
-    )
-    if not target.exists():
-        raise RuntimeError(f"LibreOffice khong tao duoc {target}")
-    return target
+    for p in todo:
+        target = out_dir / (p.stem + ".png")
+        if target.exists():
+            result[str(p)] = target
+    return result
 
 
-def ensure_latex_compatible(src: Path, out_dir: Path) -> Path:
-    """Dam bao anh dung duoc trong LaTeX (pdflatex/xelatex): chuyen WMF/EMF
-    sang PNG, con lai copy nguyen ban vao out_dir."""
-    suffix = src.suffix.lower()
-    if suffix in CONVERTIBLE:
-        return convert_to_png(src, out_dir)
+def copy_plain(paths: Iterable[Path], out_dir: Path) -> Dict[str, Path]:
+    """Copy nguyen ban cac anh khong can chuyen doi (png/jpg/...) vao out_dir."""
     out_dir.mkdir(parents=True, exist_ok=True)
-    target = out_dir / src.name
-    if not target.exists():
-        shutil.copyfile(src, target)
-    return target
+    result: Dict[str, Path] = {}
+    for p in dict.fromkeys(paths):
+        target = out_dir / p.name
+        if not target.exists():
+            shutil.copyfile(p, target)
+        result[str(p)] = target
+    return result
+
+
+def soffice_available() -> bool:
+    return _soffice is not None

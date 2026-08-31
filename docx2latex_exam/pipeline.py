@@ -1,10 +1,11 @@
-import shutil
 import tempfile
 from pathlib import Path
 from typing import List
 
+from . import media
 from .classify import classify
 from .docx_parse import DocxDocument
+from .model import ImageNode
 from .render_tex import render_document
 
 
@@ -21,17 +22,28 @@ def convert(docx_path: str, output_dir: str, tex_filename: str = "de_thi.tex") -
         doc = DocxDocument(docx_path, tmp)
         paragraphs = doc.paragraphs()
 
-        # Chuyen anh sang thu muc dich va sua duong dan trong cac ImageNode
-        # thanh duong dan tuong doi (dung trong \includegraphics).
-        from .model import ImageNode
-        for p in paragraphs:
-            for n in p.nodes:
-                if isinstance(n, ImageNode):
-                    src = Path(n.path)
-                    dst = images_dir / src.name
-                    if src.resolve() != dst.resolve():
-                        shutil.copyfile(src, dst)
-                    n.path = f"images/{dst.name}"
+        image_nodes = [n for p in paragraphs for n in p.nodes if isinstance(n, ImageNode)]
+        to_convert = [Path(n.path) for n in image_nodes if media.needs_conversion(Path(n.path))]
+        to_copy = [Path(n.path) for n in image_nodes if not media.needs_conversion(Path(n.path))]
+
+        converted = media.convert_batch(to_convert, images_dir)
+        copied = media.copy_plain(to_copy, images_dir)
+
+        warnings = list(doc.warnings)
+        if to_convert and not media.soffice_available():
+            warnings.append(
+                f"Khong tim thay LibreOffice de chuyen {len(to_convert)} anh WMF/EMF sang PNG "
+                "- cac anh nay se bi thieu trong file .tex. Hay cai libreoffice roi chay lai."
+            )
+
+        for n in image_nodes:
+            src = n.path
+            final = converted.get(src) or copied.get(src)
+            if final is None:
+                warnings.append(f"Khong the chuyen doi anh: {src}")
+                n.path = ""
+            else:
+                n.path = f"images/{final.name}"
 
         exam = classify(paragraphs)
         tex = render_document(exam)
@@ -39,5 +51,5 @@ def convert(docx_path: str, output_dir: str, tex_filename: str = "de_thi.tex") -
         tex_path = output_dir / tex_filename
         tex_path.write_text(tex, encoding="utf-8")
 
-        warnings = list(doc.warnings) + list(exam.warnings)
+        warnings.extend(exam.warnings)
         return warnings
