@@ -1,0 +1,19 @@
+[project]
+name = "docx2latex-exam"
+version = "0.1.0"
+description = "Chuyen de thi Word (dang TN THPT, cong thuc MathType/OMML) sang LaTeX"
+requires-python = ">=3.9"
+dependencies = [
+    "lxml>=4.9",
+    "olefile>=0.47",
+]
+
+[project.scripts]
+docx2latex-exam = "docx2latex_exam.cli:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["docx2latex_exam"]
