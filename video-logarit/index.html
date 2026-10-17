@@ -1,0 +1,1307 @@
+<title>Tính lôgarit bằng máy tính cầm tay</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500&family=VT323&display=swap">
+<style>
+/* Layout: one fixed 1920×1080 video stage (calculator left 45%, cream note board right 55%), scaled to fit; player controls and teacher notes below. */
+:root {
+  /* outer page (follows viewer theme) */
+  --page: #eef0f2;
+  --page-ink: #1f2a33;
+  --page-muted: #5d6b76;
+  --page-line: #d5dade;
+  --page-panel: #ffffff;
+  --page-btn: #2b3138;
+  --page-btn-ink: #ffffff;
+  /* video world (fixed look, same in both themes) */
+  --orange: #F39200;
+  --orange-deep: #c96f00;
+  --green: #1f9d55;
+  --red: #d93a2b;
+  --blue: #1f63d6;
+  --yellow: #ffd84a;
+  --cream: #fbf5e6;
+  --cream-ink: #2c261d;
+  --cream-muted: #8f7a58;
+  --backdrop: #e6eaee;
+  --body-a: #3b3f45;
+  --body-b: #26292d;
+  --lcd: #c7d3c4;
+  --lcd-ink: #1b2219;
+  --font-ui: "Be Vietnam Pro", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-lcd: "VT323", "Courier New", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #14181c; --page-ink: #e7ecef; --page-muted: #9aa7b1; --page-line: #2c343b;
+    --page-panel: #1c2227; --page-btn: #e7ecef; --page-btn-ink: #14181c; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #14181c; --page-ink: #e7ecef; --page-muted: #9aa7b1; --page-line: #2c343b;
+  --page-panel: #1c2227; --page-btn: #e7ecef; --page-btn-ink: #14181c; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--page); color: var(--page-ink); font-family: var(--font-ui); font-size: 15px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 32px;
+}
+.wrap { max-width: 1280px; margin: 0 auto; display: grid; gap: 14px; }
+.head h1 { font-size: 22px; margin: 0; text-wrap: balance; }
+.head p { margin: 4px 0 0; color: var(--page-muted); }
+
+/* ---------- player ---------- */
+#viewport {
+  position: relative; width: 100%; max-width: 100%; aspect-ratio: 16 / 9; overflow: hidden;
+  border-radius: 12px; background: #000; box-shadow: 0 8px 30px rgba(0,0,0,.18);
+}
+#viewport:fullscreen { border-radius: 0; width: 100vw; height: 100vh; aspect-ratio: auto; display: grid; place-items: center; background: #000; }
+#viewport:fullscreen #stageBox { position: relative; width: min(100vw, 177.78vh); aspect-ratio: 16/9; }
+#stageBox { position: absolute; inset: 0; }
+#stage {
+  position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0;
+  overflow: hidden; font-family: var(--font-ui); color: var(--cream-ink);
+  background-color: var(--backdrop);
+  background-image:
+    linear-gradient(rgba(60,80,100,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(60,80,100,.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.controls {
+  display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center;
+  background: var(--page-panel); border: 1px solid var(--page-line); border-radius: 12px; padding: 10px 12px;
+}
+.controls .grp { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.controls .sep { width: 1px; height: 26px; background: var(--page-line); }
+button.pbtn {
+  font: 600 14px var(--font-ui); border: 0; border-radius: 8px; padding: 8px 12px; cursor: pointer;
+  background: var(--page-btn); color: var(--page-btn-ink); min-width: 40px;
+}
+button.chap {
+  font: 500 13px var(--font-ui); border: 1px solid var(--page-line); background: transparent; color: var(--page-ink);
+  border-radius: 999px; padding: 6px 11px; cursor: pointer;
+}
+button.chap[aria-current="true"] { background: var(--orange); border-color: var(--orange); color: #1d1408; font-weight: 700; }
+button:focus-visible, input:focus-visible + span { outline: 3px solid var(--orange); outline-offset: 2px; }
+#clock { font: 600 14px var(--font-ui); font-variant-numeric: tabular-nums; color: var(--page-muted); min-width: 92px; }
+label.tg { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--page-ink); cursor: pointer; user-select: none; }
+label.tg input { accent-color: var(--orange); width: 16px; height: 16px; }
+label.tg[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+.notes { background: var(--page-panel); border: 1px solid var(--page-line); border-radius: 12px; padding: 14px 18px; display: grid; gap: 6px; }
+.notes h2 { margin: 0 0 2px; font-size: 16px; }
+.notes ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; color: var(--page-ink); max-width: 75ch; }
+.notes li { line-height: 1.5; }
+.notes kbd { font: 600 12px var(--font-ui); border: 1px solid var(--page-line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; }
+
+/* record mode: stage fills the window, nothing else */
+body.rec { padding: 0; background: #000; overflow: hidden; }
+body.rec .head, body.rec .controls, body.rec .notes { display: none; }
+body.rec .wrap { max-width: none; }
+body.rec #viewport { position: fixed; inset: 0; border-radius: 0; aspect-ratio: auto; width: 100vw; height: 100vh; }
+
+/* ---------- stage: top bar ---------- */
+#topbar { position: absolute; left: 0; top: 0; width: 1920px; height: 84px; display: flex; align-items: center; gap: 22px; padding: 0 48px; }
+#topbar .logo { width: 44px; height: 44px; border-radius: 11px; background: var(--orange); color: #fff; display: grid; place-items: center; font: 800 17px var(--font-ui); letter-spacing: -.02em; }
+#topbar .ttl { font: 700 30px var(--font-ui); color: var(--orange-deep); letter-spacing: -.01em; }
+#prog { display: flex; gap: 10px; margin-left: 8px; }
+#prog span {
+  width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font: 700 20px var(--font-ui);
+  border: 3px solid #c5ccd3; color: #8a96a1; background: #fff; transition: all .35s;
+}
+#prog span.on { border-color: var(--orange); background: var(--orange); color: #fff; transform: scale(1.12); }
+#prog span.done { border-color: var(--orange); color: var(--orange-deep); }
+#topbar .grade { margin-left: auto; font: 500 20px var(--font-ui); color: #6c7882; }
+
+/* ---------- calculator ---------- */
+#calc {
+  position: absolute; left: 212px; top: 100px; width: 440px; height: 960px;
+  border-radius: 44px 44px 56px 56px; padding: 22px 24px 26px;
+  background: linear-gradient(180deg, var(--body-a), var(--body-b));
+  box-shadow: 0 30px 60px rgba(20,30,40,.35), 0 6px 14px rgba(20,30,40,.25), inset 0 2px 0 rgba(255,255,255,.08);
+  display: flex; flex-direction: column; gap: 16px; color: #e9ecef;
+}
+.c-top { display: flex; justify-content: space-between; align-items: flex-end; height: 40px; padding: 0 6px; }
+.c-top .brand { font: 800 25px var(--font-ui); letter-spacing: .12em; color: #e6e9ec; }
+.c-top .model { text-align: right; line-height: 1.05; }
+.c-top .model b { display: block; font: 700 italic 19px var(--font-ui); color: #f1f3f5; }
+.c-top .model small { font: 600 11px var(--font-ui); letter-spacing: .22em; color: #9aa3ab; }
+.bezel { background: #1a1c1f; border-radius: 16px; padding: 12px; box-shadow: inset 0 2px 6px rgba(0,0,0,.6); }
+#lcd {
+  position: relative; height: 196px; border-radius: 6px; padding: 8px 16px 10px; color: var(--lcd-ink);
+  background: linear-gradient(180deg, #d1dccd, var(--lcd) 60%, #bccab8);
+  box-shadow: inset 0 3px 8px rgba(0,0,0,.25); font-family: var(--font-lcd); overflow: hidden;
+}
+.lcd-st { display: flex; gap: 12px; font-size: 20px; line-height: 1; opacity: .7; }
+#lcdIn { height: 82px; display: flex; align-items: center; font-size: 50px; line-height: 1; white-space: nowrap; padding-top: 4px; }
+#lcdOut { position: absolute; right: 18px; bottom: 10px; font-size: 64px; line-height: 1; white-space: nowrap; }
+#lcdIn .fn { margin-right: 2px; }
+#lcdIn .slot { display: inline-block; min-width: 24px; height: 42px; line-height: 42px; text-align: center; padding: 0 3px; border-radius: 3px; position: relative; }
+#lcdIn .slot.base { font-size: 34px; height: 32px; line-height: 32px; transform: translateY(18px); min-width: 20px; }
+#lcdIn .slot.empty { outline: 2px dashed rgba(27,34,25,.55); outline-offset: -2px; }
+#lcdIn .slot.on { outline: 3px solid var(--orange); outline-offset: 0; animation: blink 0.9s steps(1) infinite; }
+#lcdIn .slot.on::after, #lcdIn .cur::after {
+  content: ""; display: inline-block; width: 3px; height: .8em; background: var(--lcd-ink); vertical-align: -0.08em; margin-left: 1px;
+  animation: caret .9s steps(1) infinite;
+}
+#lcdIn .cur { display: inline-block; }
+@keyframes blink { 50% { outline-color: rgba(243,146,0,.25); } }
+@keyframes caret { 50% { opacity: 0; } }
+.lfrac { display: inline-flex; flex-direction: column; align-items: center; font-size: 48px; line-height: .9; vertical-align: middle; }
+.lfrac span:first-child { border-bottom: 3px solid var(--lcd-ink); padding: 0 6px 2px; }
+.lfrac span:last-child { padding-top: 4px; }
+
+.c-ctrl { display: grid; grid-template-columns: 1fr 138px 1fr; align-items: center; gap: 10px; height: 136px; }
+.c-ctrl .side { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 10px; }
+.pad { position: relative; width: 138px; height: 128px; border-radius: 50%; background: radial-gradient(circle at 50% 40%, #5a5f66, #3a3e44); box-shadow: 0 4px 0 #17191c, inset 0 1px 0 rgba(255,255,255,.12); }
+.pad .seg { position: absolute; font-style: normal; color: #c9ced3; font-size: 18px; display: grid; place-items: center; opacity: .45; }
+.pad .up { left: 50%; top: 6px; transform: translateX(-50%); }
+.pad .dn { left: 50%; bottom: 6px; transform: translateX(-50%); }
+.pad .lf { left: 8px; top: 50%; transform: translateY(-50%); }
+.pad .ctr { position: absolute; left: 50%; top: 50%; width: 46px; height: 42px; transform: translate(-50%,-50%); border-radius: 50%; background: #2f3237; box-shadow: inset 0 1px 3px rgba(0,0,0,.5); }
+#k-right {
+  position: absolute; right: 2px; top: 50%; margin-top: -26px; width: 44px; height: 52px; border-radius: 12px;
+  display: grid; place-items: center; font-size: 26px; color: #fff; opacity: 1; background: rgba(255,255,255,.06);
+}
+.k {
+  display: grid; place-items: center; border-radius: 9px; position: relative; user-select: none;
+  font: 600 16px var(--font-ui); color: #f3f5f7;
+}
+.k.dim { opacity: .42; }
+.k.s { height: 30px; background: #2c2f34; font-size: 12px; border-radius: 14px; box-shadow: 0 3px 0 #141618; letter-spacing: .02em; }
+.k.s.shift { color: #f2c94c; }
+.k.s.alpha { color: #ff6f61; }
+.c-fn { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px 10px; padding: 4px 2px 0; }
+.c-fn .k { height: 42px; background: linear-gradient(#41464d, #33373c); box-shadow: 0 4px 0 #15171a; font-size: 17px; }
+.c-num { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px 12px; margin-top: 8px; }
+.c-num .k { height: 60px; background: linear-gradient(#e9ecef, #cfd4d9); color: #1c2025; box-shadow: 0 5px 0 #8c949b; font-size: 27px; font-weight: 600; border-radius: 12px; }
+.c-num .k.del { background: linear-gradient(#e2774a, #c95a2e); color: #fff; box-shadow: 0 5px 0 #84391b; font-size: 18px; }
+.c-num .k.sm { font-size: 18px; }
+.c-num .k.dim, .c-fn .k.dim { opacity: .5; }
+.bxs { display: inline-block; width: .55em; height: .55em; border: 1.5px solid currentColor; border-radius: 1px; vertical-align: -0.18em; margin-left: 1px; }
+.bxs.lo { width: .42em; height: .42em; vertical-align: -0.38em; }
+.k.pressed, #k-right.pressed { z-index: 5; box-shadow: 0 0 0 4px var(--orange), 0 0 24px 6px rgba(243,146,0,.6) !important; }
+.k.hold { box-shadow: 0 0 0 4px var(--orange), 0 0 24px 6px rgba(243,146,0,.55) !important; animation: holdpulse 1s ease-in-out infinite; }
+@keyframes holdpulse { 50% { box-shadow: 0 0 0 4px var(--orange), 0 0 8px 2px rgba(243,146,0,.25) !important; } }
+
+/* ---------- board ---------- */
+#board {
+  position: absolute; left: 900px; top: 100px; width: 980px; height: 790px; border-radius: 22px;
+  background: var(--cream); box-shadow: 0 18px 40px rgba(60,50,30,.18), 0 2px 0 #e9dfc7;
+  padding: 30px 40px; color: var(--cream-ink);
+}
+#zones { display: grid; grid-template-rows: 176px 150px 1fr; height: 100%; }
+.zone { position: relative; padding: 14px 0 16px; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.zone + .zone { border-top: 2px dashed #e3d6b8; padding-top: 18px; }
+.zlab { font: 700 15px var(--font-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--cream-muted); }
+#task { font: 600 50px/1.15 var(--font-ui); letter-spacing: -.01em; }
+#task b { color: var(--orange-deep); font-weight: 800; }
+#task small { display: block; font: 500 25px var(--font-ui); color: #6f5f45; margin-top: 8px; letter-spacing: 0; }
+#cmpTag {
+  position: absolute; right: 0; top: 10px; font: 600 22px var(--font-ui); background: #fff; border: 2px solid #ead9b5;
+  border-radius: 12px; padding: 8px 14px; color: #5d5243;
+}
+#cmpTag span { padding: 2px 6px; border-radius: 6px; transition: background .3s, color .3s; }
+#cmpTag span.lit { background: var(--orange); color: #fff; }
+.chips { display: flex; flex-wrap: wrap; gap: 12px; align-content: flex-start; }
+.chip {
+  height: 58px; min-width: 58px; padding: 0 14px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--body-a); color: #fff; font: 600 28px var(--font-ui); box-shadow: 0 4px 0 #1b1d20; white-space: nowrap;
+}
+.chip.num { background: #e3e7eb; color: #1c2025; box-shadow: 0 4px 0 #9aa2a9; }
+.chip.ac { background: #d4653a; box-shadow: 0 4px 0 #84391b; font-size: 22px; }
+.chip.var { background: #fff; color: var(--blue); border: 2px dashed var(--blue); box-shadow: none; font-style: italic; font-weight: 700; }
+.chip.sm { height: 44px; min-width: 44px; font-size: 21px; padding: 0 10px; border-radius: 9px; box-shadow: 0 3px 0 #1b1d20; }
+.chip.sm.num { box-shadow: 0 3px 0 #9aa2a9; }
+.chip.sm.var { box-shadow: none; }
+#fx .chip.fly { position: absolute; z-index: 40; pointer-events: none; }
+
+/* rounding */
+.rv { position: relative; display: grid; gap: 10px; }
+.rv-lab { font: 500 22px var(--font-ui); color: #6f5f45; }
+.rv-num { position: relative; font: 700 86px/1.05 var(--font-ui); font-variant-numeric: tabular-nums; letter-spacing: .01em; display: flex; align-items: flex-end; height: 100px; }
+.rv-num .d { display: inline-block; position: relative; border-radius: 8px; }
+.rv-num .d.hl { background: var(--yellow); box-shadow: 0 0 0 4px var(--yellow); }
+.rv-num .cut { display: inline-block; width: 6px; height: 104px; background: var(--red); border-radius: 3px; margin: 0 8px; transform-origin: 50% 100%; align-self: center; }
+.rv-num .dp { display: inline-block; position: relative; width: .32em; }
+.rv-num .dp i { position: absolute; left: 0; bottom: 0; font-style: normal; }
+.rv-num .dp i.cm { opacity: 0; }
+.odo { display: inline-block; height: 1.05em; overflow: hidden; vertical-align: bottom; }
+.odo > span { display: flex; flex-direction: column; }
+.odo > span > span { height: 1.05em; }
+.rv-note {
+  position: absolute; top: 112px; font: 700 26px var(--font-ui); color: #7a5600; background: #fff3c2; border: 2px solid #f1d36a;
+  border-radius: 10px; padding: 6px 12px; white-space: nowrap;
+}
+.rv-note::before { content: ""; position: absolute; left: 22px; top: -10px; border: 8px solid transparent; border-top: 0; border-bottom: 10px solid #f1d36a; }
+.rv-final { font: 700 54px var(--font-ui); margin-top: 58px; min-height: 66px; }
+.rv-final b { color: var(--green); }
+.rv-cap { font: 500 22px var(--font-ui); color: #6f5f45; display: flex; align-items: center; gap: 10px; }
+.rv-cap .pill { font: 700 26px var(--font-ui); background: #fff; border: 2px solid #ead9b5; border-radius: 8px; padding: 0 10px; }
+.ok { color: var(--green); }
+.bad { color: var(--red); }
+
+/* panel (scenes 4 and 5) */
+#panel { height: 100%; display: flex; flex-direction: column; gap: 18px; }
+.cmp-head { display: grid; grid-template-columns: 60px 1fr 70px 1.25fr 54px; gap: 12px; font: 700 16px var(--font-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--cream-muted); padding: 0 18px; }
+.card {
+  position: relative; display: grid; grid-template-columns: 60px 1fr 70px 1.25fr 54px; gap: 12px; align-items: center;
+  background: #fff; border: 2px solid #ecdfc3; border-radius: 18px; padding: 22px 18px; min-height: 250px;
+}
+.card .tag { width: 54px; height: 54px; border-radius: 14px; background: var(--orange); color: #fff; font: 800 28px var(--font-ui); display: grid; place-items: center; }
+.card .hand { font: 700 40px/1.2 var(--font-ui); }
+.card .hand small { display: block; font: 500 20px var(--font-ui); color: #7d6c50; margin-top: 6px; }
+.card .link { height: 8px; border-radius: 4px; background: #e4dccb; position: relative; }
+.card .link b { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); font: 800 34px var(--font-ui); color: #b9ae98; background: #fff; padding: 0 6px; }
+.card.match .link { background: var(--green); box-shadow: 0 0 18px 4px rgba(31,157,85,.55); }
+.card.match .link b { color: var(--green); }
+.card .mach { display: grid; gap: 14px; min-width: 0; }
+.card .out { font: 700 40px var(--font-ui); min-height: 54px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.card .out .lcdv { font: 400 46px var(--font-lcd); background: var(--lcd); color: var(--lcd-ink); border-radius: 8px; padding: 0 12px; }
+.card .out .lcdv .lfrac { font-size: 36px; }
+.card .out .lcdv .lfrac span:first-child { border-bottom-width: 2px; }
+.card .check { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font: 800 32px var(--font-ui); color: #fff; background: var(--green); opacity: 0; }
+.card .note { position: absolute; right: 18px; bottom: 10px; font: 500 18px var(--font-ui); color: #7d6c50; }
+.err-h { display: flex; align-items: center; gap: 14px; font: 800 32px var(--font-ui); }
+.err-h .n { background: var(--red); color: #fff; border-radius: 10px; padding: 2px 14px; font-size: 24px; }
+.err-row { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 14px 18px; justify-items: start; }
+.err-row .why { font: 500 22px var(--font-ui); color: #7d6c50; }
+.rbox { position: relative; background: #fff; border: 2px solid #ecdfc3; border-radius: 14px; padding: 12px 20px; font: 700 38px var(--font-ui); display: flex; align-items: center; gap: 14px; }
+.rbox .lcdv { font: 400 46px var(--font-lcd); background: var(--lcd); color: var(--lcd-ink); border-radius: 8px; padding: 0 10px; }
+.rbox .strike { position: absolute; left: 10px; right: 10px; top: 50%; height: 6px; background: var(--red); border-radius: 3px; transform-origin: 0 50%; transform: rotate(-8deg) scaleX(0); }
+.mark { width: 50px; height: 50px; border-radius: 50%; display: grid; place-items: center; font: 800 30px var(--font-ui); color: #fff; flex: none; }
+.mark.x { background: var(--red); }
+.mark.v { background: var(--green); }
+.rbox small { font: 500 20px var(--font-ui); color: #7d6c50; }
+.opts { display: flex; gap: 16px; flex-wrap: wrap; }
+.opt { display: flex; align-items: center; gap: 12px; background: #fff; border: 2px solid #ecdfc3; border-radius: 14px; padding: 12px 16px; font: 700 40px var(--font-ui); }
+.opt.badopt { border-color: #f0b4ad; }
+.opt.goodopt { border-color: #9bd4b2; }
+.opt small { display: block; font: 500 18px var(--font-ui); color: #7d6c50; }
+.sum { background: #fff; border: 3px solid var(--orange); border-radius: 22px; padding: 30px 34px; display: grid; gap: 26px; margin: auto 0; }
+.sum h3 { margin: 0; font: 800 34px var(--font-ui); color: var(--orange-deep); }
+.sum .ln { display: grid; grid-template-columns: 170px 40px 1fr; align-items: center; gap: 10px; }
+.sum .ln .lhs { font: 700 40px var(--font-ui); }
+.sum .ln .arrow { font: 700 32px var(--font-ui); color: var(--cream-muted); }
+
+/* subtitles */
+#sub {
+  position: absolute; left: 900px; top: 912px; width: 980px; min-height: 0; display: flex; justify-content: center;
+  pointer-events: none;
+}
+#sub span {
+  background: rgba(22,27,32,.86); color: #fff; font: 500 32px/1.35 var(--font-ui); padding: 12px 22px; border-radius: 14px;
+  text-align: center; text-wrap: balance;
+}
+#sub span:empty { display: none; }
+
+/* overlays */
+#fx { position: absolute; inset: 0; pointer-events: none; z-index: 30; }
+#intro { position: absolute; inset: 84px 0 0 0; z-index: 20; display: grid; place-items: center; }
+.intro-col { display: grid; gap: 34px; justify-items: center; }
+.ex { display: flex; align-items: center; gap: 36px; font: 700 70px var(--font-ui); background: #fff; padding: 18px 40px; border-radius: 20px; box-shadow: 0 10px 24px rgba(40,50,60,.12); }
+.ex .arr { color: var(--orange); font-size: 64px; }
+.ex .pw { color: var(--orange-deep); }
+.qbox { display: grid; gap: 22px; justify-items: center; background: #fff; padding: 30px 60px; border-radius: 24px; box-shadow: 0 14px 30px rgba(40,50,60,.16); border: 3px solid var(--orange); }
+.qbox .big { font: 800 96px var(--font-ui); }
+.qbox .mid { font: 700 64px var(--font-ui); display: flex; align-items: baseline; gap: 18px; }
+.qm { display: inline-block; color: #fff; background: var(--orange); border-radius: 14px; padding: 0 18px; }
+.qm2 { display: inline-block; color: #fff; background: var(--red); border-radius: 10px; padding: 0 10px; font-size: .62em; line-height: 1.2; transform-origin: 50% 100%; position: relative; top: -0.75em; margin-left: 2px; }
+.qbox .nope { font: 600 30px var(--font-ui); color: var(--red); }
+
+#turn { position: absolute; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(31,99,214,.52); backdrop-filter: blur(4px); perspective: 1800px; }
+.tcard { position: relative; width: 1040px; height: 600px; transform-style: preserve-3d; }
+.tface { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 28px; background: #fff; box-shadow: 0 30px 70px rgba(10,30,80,.4); padding: 46px 56px; display: flex; flex-direction: column; gap: 22px; color: #142033; }
+.tface.back { transform: rotateY(180deg); }
+.tchip { align-self: flex-start; background: var(--blue); color: #fff; font: 800 26px var(--font-ui); letter-spacing: .08em; text-transform: uppercase; padding: 8px 18px; border-radius: 10px; }
+.tq { font: 800 84px/1.1 var(--font-ui); color: var(--blue); }
+.tq small { display: block; font: 500 28px var(--font-ui); color: #4c5d77; margin-top: 10px; }
+.tfoot { margin-top: auto; display: flex; align-items: center; gap: 24px; }
+.tpause { width: 74px; height: 74px; border-radius: 50%; background: #e8f0fd; display: grid; place-items: center; flex: none; }
+.tpause i { display: block; width: 10px; height: 32px; background: var(--blue); border-radius: 3px; margin: 0 4px; float: left; }
+.tpause > span { display: flex; }
+.ttext { font: 600 32px var(--font-ui); color: #23324a; }
+.ttext small { display: block; font: 600 24px var(--font-ui); color: var(--blue); margin-top: 6px; }
+.ring { margin-left: auto; position: relative; width: 120px; height: 120px; flex: none; }
+.ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.ring b { position: absolute; inset: 0; display: grid; place-items: center; font: 800 48px var(--font-ui); color: var(--blue); font-variant-numeric: tabular-nums; }
+.tlcd { align-self: flex-start; font: 400 72px var(--font-lcd); background: var(--lcd); color: var(--lcd-ink); padding: 6px 26px; border-radius: 12px; box-shadow: inset 0 3px 8px rgba(0,0,0,.2); }
+.tans { font: 800 80px var(--font-ui); color: #142033; }
+.tans b { color: var(--green); display: inline-block; }
+.tans .z { background: var(--yellow); border-radius: 8px; box-shadow: 0 0 0 4px var(--yellow); }
+.tnote { font: 600 28px var(--font-ui); color: #23324a; background: #eef4ff; border-left: 6px solid var(--blue); padding: 12px 18px; border-radius: 8px; opacity: 0; }
+
+#poster, #endcard { position: absolute; inset: 0; z-index: 60; display: grid; place-items: center; background: rgba(230,234,238,.72); backdrop-filter: blur(3px); }
+.pcard { display: grid; justify-items: center; gap: 22px; text-align: center; }
+.pcard h2 { margin: 0; font: 800 76px var(--font-ui); color: var(--orange-deep); letter-spacing: -.015em; }
+.pcard p { margin: 0; font: 500 30px var(--font-ui); color: #46525c; }
+.bigplay { width: 168px; height: 168px; border-radius: 50%; border: 0; background: var(--orange); cursor: pointer; display: grid; place-items: center; box-shadow: 0 16px 40px rgba(201,111,0,.45); }
+.bigplay::before { content: ""; border-left: 58px solid #fff; border-top: 36px solid transparent; border-bottom: 36px solid transparent; margin-left: 14px; }
+.bigplay:focus-visible { outline: 6px solid #1f2a33; outline-offset: 6px; }
+.pcard .steps { display: flex; gap: 14px; font: 600 24px var(--font-ui); color: #3b4650; }
+.pcard .steps span { background: #fff; border-radius: 12px; padding: 8px 16px; box-shadow: 0 3px 10px rgba(0,0,0,.08); }
+#holdHint { position: absolute; right: 48px; top: 18px; z-index: 70; font: 700 24px var(--font-ui); color: #fff; background: var(--blue); padding: 10px 18px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,.25); }
+
+sub, sup { line-height: 0; }
+.m sub { font-size: .6em; }
+
+@media (prefers-reduced-motion: reduce) {
+  #lcdIn .slot.on, #lcdIn .slot.on::after, #lcdIn .cur::after, .k.hold { animation: none; }
+}
+@media (max-width: 640px) {
+  .controls .sep { display: none; }
+  #clock { min-width: 0; }
+}
+</style>
+
+<div class="wrap">
+  <div class="head">
+    <h1>Tính lôgarit bằng máy tính cầm tay</h1>
+    <p>Video minh hoạ bấm máy Casio fx‑580VN X: log 6,52 · ln 6,52 · log₁₄17, kiểm chứng kết quả và hai lỗi hay gặp. Khoảng 2 phút.</p>
+  </div>
+
+  <div id="viewport">
+    <div id="stageBox">
+      <div id="stage" aria-label="Khung video">
+        <div id="topbar">
+          <div class="logo">log</div>
+          <div class="ttl">Tính lôgarit bằng máy tính cầm tay</div>
+          <div id="prog" aria-label="Tiến độ"><span>1</span><span>2</span><span>3</span></div>
+          <div class="grade">Toán 11 · Hàm số mũ và hàm số lôgarit</div>
+        </div>
+
+        <div id="calc" aria-label="Máy tính Casio fx-580VN X">
+          <div class="c-top"><span class="brand">CASIO</span><span class="model"><b>fx‑580VN X</b><small>CLASSWIZ</small></span></div>
+          <div class="bezel"><div id="lcd"><div class="lcd-st"><span>D</span><span>Math▲</span></div><div id="lcdIn"></div><div id="lcdOut"></div></div></div>
+          <div class="c-ctrl">
+            <div class="side">
+              <b class="k s shift dim">SHIFT</b><b class="k s alpha dim">ALPHA</b>
+              <b class="k s dim">OPTN</b><b class="k s dim">CALC</b>
+            </div>
+            <div class="pad"><i class="seg up">▲</i><i class="seg dn">▼</i><i class="seg lf">◄</i><span class="ctr"></span><i class="k seg" id="k-right">►</i></div>
+            <div class="side">
+              <b class="k s dim">MENU</b><b class="k s dim">ON</b>
+              <b class="k s dim">∫▫</b><b class="k s dim">x</b>
+            </div>
+          </div>
+          <div class="c-fn">
+            <b class="k dim">▫⁄▫</b><b class="k dim">√▫</b><b class="k dim">x²</b><b class="k dim">x<sup>▫</sup></b>
+            <b class="k" id="k-log">log<span class="bxs lo"></span><span class="bxs"></span></b><b class="k" id="k-ln">ln</b>
+            <b class="k dim">(−)</b><b class="k dim">°′″</b><b class="k dim">x⁻¹</b><b class="k dim">sin</b><b class="k dim">cos</b><b class="k dim">tan</b>
+            <b class="k dim">STO</b><b class="k dim">ENG</b><b class="k dim">(</b><b class="k dim">)</b><b class="k" id="k-sd">S⇔D</b><b class="k dim">M+</b>
+          </div>
+          <div class="c-num">
+            <b class="k" id="k-7">7</b><b class="k" id="k-8">8</b><b class="k" id="k-9">9</b><b class="k del dim">DEL</b><b class="k del" id="k-ac">AC</b>
+            <b class="k" id="k-4">4</b><b class="k" id="k-5">5</b><b class="k" id="k-6">6</b><b class="k dim">×</b><b class="k dim">÷</b>
+            <b class="k" id="k-1">1</b><b class="k" id="k-2">2</b><b class="k" id="k-3">3</b><b class="k dim">+</b><b class="k dim">−</b>
+            <b class="k" id="k-0">0</b><b class="k" id="k-dot">.</b><b class="k sm dim">×10ˣ</b><b class="k sm dim">Ans</b><b class="k" id="k-eq">=</b>
+          </div>
+        </div>
+
+        <div id="board">
+          <div id="zones">
+            <div class="zone"><div class="zlab">Yêu cầu tính</div><div id="task"></div><div id="cmpTag" hidden><span id="cmpLog">log → cơ số 10</span> · <span id="cmpLn">ln → cơ số e</span></div></div>
+            <div class="zone"><div class="zlab">Dãy phím đã bấm</div><div class="chips" id="chips"></div></div>
+            <div class="zone"><div class="zlab">Kết quả và làm tròn</div><div id="rv"></div></div>
+          </div>
+          <div id="panel" hidden></div>
+        </div>
+
+        <div id="sub"><span id="subText"></span></div>
+        <div id="intro" hidden></div>
+        <div id="fx"></div>
+        <div id="turn" hidden></div>
+        <div id="holdHint" hidden>⏸ Đang dừng · bấm ▶ để xem đáp án</div>
+        <div id="endcard" hidden>
+          <div class="pcard">
+            <h2>Hết video</h2>
+            <p>log a · ln a · logₐb — nhớ nhập cơ số trước, làm tròn đúng yêu cầu.</p>
+            <button class="bigplay" id="replay" aria-label="Xem lại từ đầu"></button>
+          </div>
+        </div>
+        <div id="poster">
+          <div class="pcard">
+            <h2>Tính lôgarit bằng máy tính cầm tay</h2>
+            <p>Casio fx‑580VN X · khoảng 2 phút · có 3 lần “Đến lượt em”</p>
+            <button class="bigplay" id="start" aria-label="Phát video"></button>
+            <div class="steps"><span>log 6,52</span><span>ln 6,52</span><span>log₁₄17</span><span>Kiểm chứng</span><span>Lỗi hay gặp</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls" role="toolbar" aria-label="Điều khiển video">
+    <div class="grp">
+      <button class="pbtn" id="btnPlay" aria-label="Phát hoặc dừng">▶ Phát</button>
+      <button class="pbtn" id="btnRestart" aria-label="Phát lại từ đầu">↺</button>
+      <span id="clock">0:00</span>
+    </div>
+    <span class="sep"></span>
+    <div class="grp" id="chapters"></div>
+    <span class="sep"></span>
+    <div class="grp">
+      <label class="tg"><input type="checkbox" id="optSound" checked><span>Âm thanh</span></label>
+      <label class="tg" id="ttsLabel"><input type="checkbox" id="optTts"><span>Đọc lời thoại</span></label>
+      <label class="tg"><input type="checkbox" id="optSubs" checked><span>Phụ đề</span></label>
+      <label class="tg"><input type="checkbox" id="optHold" checked><span>Tự dừng ở “Đến lượt em”</span></label>
+      <button class="pbtn" id="btnFull" aria-label="Toàn màn hình">⛶</button>
+    </div>
+  </div>
+
+  <div class="notes">
+    <h2>Dành cho thầy/cô</h2>
+    <ul>
+      <li>Phím tắt: <kbd>Space</kbd> phát/dừng, <kbd>←</kbd> <kbd>→</kbd> chuyển cảnh, <kbd>F</kbd> toàn màn hình.</li>
+      <li>Khi bật “Tự dừng ở ‘Đến lượt em’”, video đếm ngược 5 giây rồi dừng chờ. Học sinh bấm máy xong, thầy/cô bấm ▶ để lật thẻ đáp án.</li>
+      <li>“Đọc lời thoại” dùng giọng tiếng Việt có sẵn trong trình duyệt hoặc máy (nếu có). Nếu thầy/cô tự đọc, tắt mục này và để phụ đề làm lời nhắc.</li>
+      <li>Ở chế độ hiển thị mặc định (MathI/O), máy hiện log₄8 dưới dạng phân số 3/2; bấm S⇔D để ra 1.5, đúng như học sinh sẽ gặp khi bấm thật.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const stage = $('#stage'), fx = $('#fx'), lcdIn = $('#lcdIn'), lcdOut = $('#lcdOut');
+  const chipsEl = $('#chips'), rvEl = $('#rv'), taskEl = $('#task'), panel = $('#panel'), zones = $('#zones');
+  const calcEl = $('#calc'), boardEl = $('#board'), intro = $('#intro'), turnEl = $('#turn');
+  const REC = location.hash === '#record';
+  if (REC) document.body.classList.add('rec');
+
+  /* ---------- scaling ---------- */
+  let scale = 1;
+  function fit() { scale = $('#stageBox').clientWidth / 1920; stage.style.transform = `scale(${scale})`; }
+  new ResizeObserver(fit).observe($('#stageBox'));
+  fit();
+  function srect(el) {
+    const r = el.getBoundingClientRect(), s = stage.getBoundingClientRect();
+    return { x: (r.left - s.left) / scale, y: (r.top - s.top) / scale, w: r.width / scale, h: r.height / scale };
+  }
+
+  /* ---------- clock, pause, cancel ---------- */
+  const CANCEL = Symbol('cancel');
+  let gen = 0, paused = false, running = false, holding = false, elapsed = 0, pausedAnims = [];
+  const opt = { sound: true, tts: false, subs: true, hold: !REC };
+
+  function wait(ms) {
+    const g = gen;
+    return new Promise((res, rej) => {
+      let left = ms, last = performance.now();
+      function tick(now) {
+        if (g !== gen) return rej(CANCEL);
+        if (!paused) left -= now - last;
+        last = now;
+        if (left <= 0) res(); else requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
+  }
+  function A(el, kf, o) {
+    const a = el.animate(kf, Object.assign({ fill: 'forwards', easing: 'cubic-bezier(.2,.8,.2,1)' }, typeof o === 'number' ? { duration: o } : o));
+    if (paused) { a.pause(); pausedAnims.push(a); }
+    return a;
+  }
+  function setPaused(p) {
+    if (p === paused) return;
+    paused = p;
+    if (p) {
+      pausedAnims = document.getAnimations().filter((a) => a.playState === 'running');
+      pausedAnims.forEach((a) => a.pause());
+      if (window.speechSynthesis) speechSynthesis.pause();
+    } else {
+      pausedAnims.forEach((a) => { try { a.play(); } catch (e) {} });
+      pausedAnims = [];
+      if (window.speechSynthesis) speechSynthesis.resume();
+      holding = false;
+    }
+    ui();
+  }
+  function hold() { holding = true; setPaused(true); ui(); return wait(1); }
+
+  let lastT = performance.now();
+  (function clock(now) {
+    if (running && !paused) elapsed += now - lastT;
+    lastT = now;
+    const s = Math.floor(elapsed / 1000);
+    $('#clock').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')} / 2:05`;
+    requestAnimationFrame(clock);
+  })(performance.now());
+
+  /* ---------- sound ---------- */
+  let ac = null;
+  window.__sfx = [];
+  function audioInit() {
+    if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; } }
+    if (ac && ac.state === 'suspended') ac.resume();
+  }
+  function sfx(type) {
+    window.__sfx.push([performance.now(), type]);
+    if (!opt.sound || !ac) return;
+    const t = ac.currentTime, out = ac.createGain();
+    out.connect(ac.destination);
+    if (type === 'click') {
+      const n = Math.floor(ac.sampleRate * 0.03), b = ac.createBuffer(1, n, ac.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 6);
+      const s = ac.createBufferSource(), f = ac.createBiquadFilter();
+      f.type = 'bandpass'; f.frequency.value = 3200; f.Q.value = 1.2;
+      s.buffer = b; s.connect(f); f.connect(out); out.gain.value = 0.9; s.start(t);
+    } else if (type === 'ting') {
+      [1568, 2349, 3136].forEach((fq, i) => {
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = 'sine'; o.frequency.value = fq; o.connect(g); g.connect(out);
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime([0.28, 0.16, 0.06][i], t + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
+        o.start(t); o.stop(t + 1.2);
+      });
+    } else if (type === 'beep') {
+      const o = ac.createOscillator(), f = ac.createBiquadFilter();
+      o.type = 'square'; o.frequency.setValueAtTime(190, t); o.frequency.linearRampToValueAtTime(150, t + 0.35);
+      f.type = 'lowpass'; f.frequency.value = 900; o.connect(f); f.connect(out);
+      out.gain.setValueAtTime(0.0001, t); out.gain.exponentialRampToValueAtTime(0.22, t + 0.02); out.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+      o.start(t); o.stop(t + 0.42);
+    } else if (type === 'whoosh') {
+      const n = Math.floor(ac.sampleRate * 0.6), b = ac.createBuffer(1, n, ac.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * i / n);
+      const s = ac.createBufferSource(), f = ac.createBiquadFilter();
+      f.type = 'bandpass'; f.Q.value = 0.8; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(1600, t + 0.55);
+      s.buffer = b; s.connect(f); f.connect(out); out.gain.value = 0.25; s.start(t);
+    }
+  }
+
+  /* ---------- voice + subtitles ---------- */
+  let viVoice = null;
+  function pickVoice() {
+    if (!window.speechSynthesis) return;
+    const vs = speechSynthesis.getVoices();
+    viVoice = vs.find((v) => /^vi/i.test(v.lang)) || null;
+    const lab = $('#ttsLabel'), box = $('#optTts');
+    if (viVoice) { lab.removeAttribute('aria-disabled'); box.disabled = false; lab.title = viVoice.name; }
+    else { lab.setAttribute('aria-disabled', 'true'); box.disabled = true; box.checked = false; opt.tts = false; lab.title = 'Trình duyệt/máy này chưa có giọng tiếng Việt'; }
+  }
+  if (window.speechSynthesis) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; } else pickVoice();
+
+  function speakable(t) {
+    return t.replace(/log₁₄17/g, 'lốc cơ số 14 của 17').replace(/\blog\b/g, 'lốc').replace(/\bln\b/g, 'lờ nờ')
+      .replace(/−/g, 'âm ').replace(/≈/g, 'xấp xỉ');
+  }
+  function setSub(t) { $('#subText').textContent = opt.subs ? t : ''; $('#subText').dataset.t = t; }
+  function say(text, spoken) {
+    setSub(text);
+    const g = gen, est = Math.max(1200, text.length * 58);
+    if (!opt.tts || !viVoice || REC) return wait(est);
+    return new Promise((res, rej) => {
+      let done = false;
+      const fin = () => { if (done) return; done = true; g === gen ? res() : rej(CANCEL); };
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(speakable(spoken || text));
+      u.voice = viVoice; u.lang = viVoice.lang; u.rate = 1;
+      u.onend = fin; u.onerror = fin;
+      speechSynthesis.speak(u);
+      wait(est * 2.4).then(fin, () => { done = true; rej(CANCEL); });
+    });
+  }
+
+  /* ---------- calculator model ---------- */
+  const calc = { kind: null, base: '', arg: '', slot: 'idle', result: null, frac: null, dec: false };
+  let callouts = null;
+  const CH = { dot: '.', right: '►', eq: '=', ac: 'AC', sd: 'S⇔D', ln: 'ln' };
+  function keyEl(k) { return document.getElementById('k-' + k); }
+  function fmt(v) {
+    let s = v.toPrecision(10);
+    if (s.includes('.')) s = s.replace(/0+$/, '').replace(/\.$/, '');
+    return s.replace('-', '−');
+  }
+  function apply(k) {
+    if (k === 'ac') Object.assign(calc, { kind: null, base: '', arg: '', slot: 'idle', result: null, frac: null, dec: false });
+    else if (k === 'log') Object.assign(calc, { kind: 'log', base: '', arg: '', slot: 'base', result: null, frac: null, dec: false });
+    else if (k === 'ln') Object.assign(calc, { kind: 'ln', base: '', arg: '', slot: 'arg', result: null, frac: null, dec: false });
+    else if (k === 'right') { if (calc.kind === 'log' && calc.slot === 'base') calc.slot = 'arg'; }
+    else if (k === 'sd') calc.dec = !calc.dec;
+    else if (k === 'eq') {
+      const v = calc.kind === 'log' ? Math.log(+calc.arg) / Math.log(+calc.base) : Math.log(+calc.arg);
+      calc.result = v; calc.slot = null; calc.frac = null; calc.dec = false;
+      if (Math.abs(v - Math.round(v)) > 1e-9) {
+        for (let d = 2; d <= 9; d++) { const n = v * d; if (Math.abs(n - Math.round(n)) < 1e-9) { calc.frac = [Math.round(n), d]; break; } }
+      }
+    } else {
+      const ch = k === 'dot' ? '.' : k;
+      if (calc.slot === 'base') calc.base += ch; else if (calc.slot) calc.arg += ch;
+    }
+  }
+  function lcdRender() {
+    const on = (s) => (calc.slot === s ? ' on' : '');
+    if (calc.kind === 'log') {
+      lcdIn.innerHTML = `<span class="fn">log</span><span class="slot base${on('base')}${calc.base ? '' : ' empty'}" id="sBase">${calc.base}</span>` +
+        `<span>(</span><span class="slot arg${on('arg')}${calc.arg ? '' : ' empty'}" id="sArg">${calc.arg}</span><span>)</span>`;
+    } else if (calc.kind === 'ln') {
+      lcdIn.innerHTML = `<span class="fn">ln</span><span>(</span><span>${calc.arg}</span>${calc.slot ? '<span class="cur"></span>' : '<span>)</span>'}`;
+    } else lcdIn.innerHTML = calc.slot === 'idle' ? '<span class="cur"></span>' : '';
+    if (calc.result == null) lcdOut.innerHTML = '';
+    else if (calc.frac && !calc.dec) lcdOut.innerHTML = `<span class="lfrac"><span>${calc.frac[0]}</span><span>${calc.frac[1]}</span></span>`;
+    else lcdOut.textContent = fmt(calc.result);
+    if (callouts) placeCallouts();
+  }
+
+  /* ---------- chips ---------- */
+  function chipHTML(k) {
+    if (k === 'log') return 'log<span class="bxs lo"></span><span class="bxs"></span>';
+    return CH[k] || k;
+  }
+  function makeChip(k, small) {
+    const c = document.createElement('span');
+    c.className = 'chip' + (/^[0-9]$|^dot$/.test(k) ? ' num' : '') + (k === 'ac' ? ' ac' : '') + (small ? ' sm' : '');
+    if (k === 'a' || k === 'b') { c.className = 'chip var' + (small ? ' sm' : ''); c.textContent = k; return c; }
+    c.innerHTML = chipHTML(k);
+    return c;
+  }
+  function flyChip(k, target) {
+    const sm = target.dataset.sm === '1';
+    const chip = makeChip(k, sm);
+    chip.style.visibility = 'hidden';
+    target.appendChild(chip);
+    const from = srect(keyEl(k)), to = srect(chip);
+    const fly = makeChip(k, sm);
+    fly.classList.add('fly');
+    fly.style.left = to.x + 'px'; fly.style.top = to.y + 'px';
+    fx.appendChild(fly);
+    const dx = from.x + from.w / 2 - (to.x + to.w / 2), dy = from.y + from.h / 2 - (to.y + to.h / 2);
+    const a = A(fly, [
+      { transform: `translate(${dx}px,${dy}px) scale(.55)`, opacity: 0.2 },
+      { transform: `translate(${dx * 0.45}px,${dy * 0.45 - 90}px) scale(1.12)`, opacity: 1, offset: 0.55 },
+      { transform: 'none', opacity: 1 }
+    ], { duration: 460, easing: 'ease-in-out' });
+    a.onfinish = () => { chip.style.visibility = ''; fly.remove(); };
+  }
+
+  /* one key press: ring + 1.15× (0.2 s), sink 2 px + click, LCD updates, chip flies; ≈0.6 s */
+  async function press(k, target = chipsEl) {
+    const el = keyEl(k);
+    el.getAnimations().forEach((a) => { if (!(a instanceof CSSAnimation)) a.cancel(); });
+    el.classList.remove('hold');
+    el.classList.add('pressed');
+    A(el, [{ transform: 'scale(1)' }, { transform: 'scale(1.15)' }], 200);
+    await wait(200);
+    A(el, [{ transform: 'scale(1.15)' }, { transform: 'scale(1.15) translateY(2px)' }], 70);
+    sfx('click');
+    const prevBase = k === 'right' && document.getElementById('sBase') ? srect(document.getElementById('sBase')) : null;
+    apply(k); lcdRender();
+    if (prevBase) cursorArrow(prevBase, srect(document.getElementById('sArg')));
+    if (k === 'eq' || k === 'sd') A(lcdOut, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], 300);
+    if (target) flyChip(k, target);
+    await wait(170);
+    A(el, [{ transform: 'scale(1.15) translateY(2px)' }, { transform: 'scale(1)' }], 200);
+    await wait(230);
+    el.classList.remove('pressed');
+  }
+  async function keys(list, target, gap = 0) { for (const k of list) { await press(k, target); if (gap) await wait(gap); } }
+
+  function svgEl(tag, attrs) {
+    const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (const a in attrs) e.setAttribute(a, attrs[a]);
+    return e;
+  }
+  function cursorArrow(a, b) {
+    const svg = svgEl('svg', { width: 1920, height: 1080, style: 'position:absolute;left:0;top:0;overflow:visible' });
+    const x1 = a.x + a.w / 2, y1 = a.y + a.h + 6, x2 = b.x + b.w / 2, y2 = b.y + b.h + 30;
+    const p = svgEl('path', { d: `M${x1} ${y1} Q ${(x1 + x2) / 2} ${Math.max(y1, y2) + 50} ${x2} ${y2}`, fill: 'none', stroke: '#F39200', 'stroke-width': 5, 'stroke-linecap': 'round', 'marker-end': 'url(#ah)' });
+    const defs = svgEl('defs', {}), m = svgEl('marker', { id: 'ah', viewBox: '0 0 10 10', refX: 6, refY: 5, markerWidth: 5, markerHeight: 5, orient: 'auto-start-reverse' });
+    m.appendChild(svgEl('path', { d: 'M0 0 L10 5 L0 10 z', fill: '#F39200' }));
+    defs.appendChild(m); svg.appendChild(defs); svg.appendChild(p); fx.appendChild(svg);
+    const len = p.getTotalLength();
+    p.style.strokeDasharray = len;
+    A(p, [{ strokeDashoffset: len }, { strokeDashoffset: 0 }], 320);
+    A(svg, [{ opacity: 1 }, { opacity: 1, offset: 0.6 }, { opacity: 0 }], { duration: 1300 }).onfinish = () => svg.remove();
+  }
+
+  /* callouts for base / argument boxes (scene 3) */
+  function showCallouts() {
+    callouts = {
+      base: Object.assign(document.createElement('div'), { innerHTML: 'cơ số' }),
+      arg: Object.assign(document.createElement('div'), { innerHTML: 'biểu thức<br>dưới dấu log' }),
+      svg: svgEl('svg', { width: 1920, height: 1080, style: 'position:absolute;left:0;top:0;overflow:visible' })
+    };
+    const st = (c) => `position:absolute;font:700 26px var(--font-ui);color:#fff;background:${c};padding:6px 14px;border-radius:10px;line-height:1.2;box-shadow:0 6px 14px rgba(0,0,0,.25)`;
+    callouts.base.style.cssText = st('#F39200');
+    callouts.arg.style.cssText = st('#1f63d6');
+    fx.append(callouts.svg, callouts.base, callouts.arg);
+    placeCallouts();
+    [callouts.base, callouts.arg].forEach((e, i) => A(e, [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 350, delay: i * 250 }));
+  }
+  function placeCallouts() {
+    const b = document.getElementById('sBase'), g = document.getElementById('sArg');
+    if (!b || !g) return;
+    const rb = srect(b), rg = srect(g), cr = srect(calcEl);
+    const cb = callouts.base, ca = callouts.arg;
+    const bw = cb.offsetWidth, ah = ca.offsetHeight;
+    const bx = cr.x - bw - 24, by = rb.y + 70, ax = cr.x + cr.w + 24, ay = rg.y - 90;
+    cb.style.left = bx + 'px'; cb.style.top = by + 'px';
+    ca.style.left = ax + 'px'; ca.style.top = ay + 'px';
+    const s = callouts.svg; s.innerHTML = '';
+    s.appendChild(svgEl('path', { d: `M${bx + bw} ${by + 22} Q ${rb.x + rb.w / 2} ${by + 22} ${rb.x + rb.w / 2} ${rb.y + rb.h + 4}`, stroke: '#F39200', 'stroke-width': 4, fill: 'none', 'stroke-linecap': 'round' }));
+    s.appendChild(svgEl('path', { d: `M${ax} ${ay + ah / 2} Q ${rg.x + rg.w / 2} ${ay + ah / 2} ${rg.x + rg.w / 2} ${rg.y - 4}`, stroke: '#1f63d6', 'stroke-width': 4, fill: 'none', 'stroke-linecap': 'round' }));
+  }
+  function hideCallouts() {
+    if (!callouts) return;
+    const c = callouts; callouts = null;
+    [c.base, c.arg, c.svg].forEach((e) => A(e, [{ opacity: 1 }, { opacity: 0 }], 300).onfinish = () => e.remove());
+  }
+
+  /* ---------- board helpers ---------- */
+  function progress(n) {
+    document.querySelectorAll('#prog span').forEach((s, i) => {
+      s.className = n > 3 ? 'done' : i + 1 === n ? 'on' : i + 1 < n ? 'done' : '';
+    });
+  }
+  function setTask(main, small) {
+    taskEl.innerHTML = `${main}${small ? `<small>${small}</small>` : ''}`;
+    A(taskEl, [{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], 450);
+  }
+  const pop = (el, d = 420) => A(el, [{ transform: 'scale(.6)', opacity: 0 }, { transform: 'scale(1.12)', opacity: 1, offset: 0.65 }, { transform: 'scale(1)', opacity: 1 }], { duration: d, easing: 'ease-out' });
+  const fadeIn = (el, d = 450) => A(el, [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }], d);
+  const shake = (el) => A(el, [0, -14, 14, -10, 10, -5, 0].map((x) => ({ transform: `translateX(${x}px)` })), { duration: 420, easing: 'linear' });
+
+  /* rounding visual: raw machine number, red cut after `keep` decimals, mark next digit, fade tail, roll up, . → , */
+  let rv = null;
+  async function rvShow(raw, keep, label = 'Máy hiện') {
+    const di = raw.indexOf('.'), cutAt = di + 1 + keep;
+    rvEl.innerHTML = `<div class="rv"><div class="rv-lab">${label}</div><div class="rv-num" id="rvNum"></div><div class="rv-final" id="rvFinal"></div><div class="rv-cap" id="rvCap" hidden></div></div>`;
+    const num = $('#rvNum');
+    rv = { raw, keep, cutAt, num, digits: [] };
+    [...raw].forEach((ch, i) => {
+      let s;
+      if (ch === '.') { s = document.createElement('span'); s.className = 'dp'; s.innerHTML = '<i class="pt">.</i><i class="cm">,</i>'; s.style.height = '1em'; }
+      else if (i === cutAt - 1) {
+        s = document.createElement('span'); s.className = 'd';
+        const up = String((+ch + 1) % 10);
+        s.innerHTML = `<span class="odo"><span><span>${ch}</span><span>${up}</span></span></span>`;
+      } else { s = document.createElement('span'); s.className = 'd'; s.textContent = ch; }
+      if (i >= cutAt) s.classList.add('tail');
+      num.appendChild(s); rv.digits.push(s);
+    });
+    fadeIn(num, 500);
+    await wait(500);
+  }
+  async function rvCut() {
+    const bar = document.createElement('span'); bar.className = 'cut';
+    rv.num.insertBefore(bar, rv.digits[rv.cutAt]);
+    rv.bar = bar;
+    A(bar, [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], 380);
+    await wait(420);
+  }
+  async function rvMark(text) {
+    const nx = rv.digits[rv.cutAt];
+    nx.classList.add('hl');
+    pop(nx, 380);
+    const note = document.createElement('div'); note.className = 'rv-note'; note.textContent = text;
+    note.style.left = (nx.offsetLeft - 10) + 'px';
+    rv.num.appendChild(note); rv.note = note;
+    fadeIn(note, 380);
+    await wait(500);
+  }
+  async function rvFinish({ up, lhs, caption }) {
+    const tail = rv.digits.slice(rv.cutAt);
+    tail.forEach((t) => A(t, [{ opacity: 1 }, { opacity: 0 }], 650));
+    A(rv.bar, [{ opacity: 1 }, { opacity: 0 }], 650);
+    A(rv.note, [{ opacity: 1 }, { opacity: 0 }], 650);
+    await wait(700);
+    if (up) {
+      const strip = rv.digits[rv.cutAt - 1].querySelector('.odo > span');
+      A(strip, [{ transform: 'translateY(0)' }, { transform: 'translateY(-50%)' }], { duration: 650, easing: 'cubic-bezier(.5,-0.3,.4,1.4)' });
+      sfx('click');
+      await wait(750);
+    }
+    const dp = rv.num.querySelector('.dp');
+    A(dp.querySelector('.pt'), [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-10px) scale(.6)' }], 380);
+    A(dp.querySelector('.cm'), [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }], { duration: 380, delay: 160 });
+    rv.digits.slice(0, rv.cutAt).forEach((d) => A(d, [{ color: '#2c261d' }, { color: '#1f9d55' }], { duration: 500, delay: 300 }));
+    if (caption) {
+      const cap = $('#rvCap'); cap.hidden = false;
+      cap.innerHTML = 'Máy dùng dấu chấm, ta viết dấu phẩy: <span class="pill">.</span> → <span class="pill">,</span>';
+      fadeIn(cap, 400);
+    }
+    await wait(600);
+    const fin = $('#rvFinal');
+    const kept = rv.raw.slice(0, rv.cutAt);
+    const val = up ? kept.slice(0, -1) + String(+kept.slice(-1) + 1) : kept;
+    fin.innerHTML = `${lhs} ≈ <b>${val.replace('.', ',')}</b>`;
+    pop(fin.querySelector('b'));
+    fadeIn(fin, 400);
+    sfx('ting');
+    await wait(600);
+  }
+
+  /* "Đến lượt em" card */
+  async function turn({ q, qText, qSay, lcd, ans, aSay, note }) {
+    turnEl.hidden = false;
+    turnEl.innerHTML = `<div class="tcard" id="tcard">
+      <div class="tface front">
+        <span class="tchip">Đến lượt em</span>
+        <div class="tq">${q}<small>(làm tròn đến chữ số thập phân thứ tư)</small></div>
+        <div class="tfoot">
+          <div class="tpause"><span><i></i><i></i></span></div>
+          <div class="ttext">Thầy/cô dừng video, các em bấm máy<small id="tHint">Đếm ngược…</small></div>
+          <div class="ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="#e1e9f7" stroke-width="10"/><circle id="tArc" cx="60" cy="60" r="52" fill="none" stroke="#1f63d6" stroke-width="10" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg><b id="tNum">5</b></div>
+        </div>
+      </div>
+      <div class="tface back">
+        <span class="tchip">Đáp án</span>
+        <div class="tlcd">${lcd}</div>
+        <div class="tans" id="tAns">${ans}</div>
+        ${note ? `<div class="tnote" id="tNote">${note}</div>` : ''}
+      </div></div>`;
+    A(turnEl, [{ opacity: 0 }, { opacity: 1 }], 350);
+    const card = $('#tcard');
+    A(card, [{ transform: 'scale(.85) translateY(40px)', opacity: 0 }, { transform: 'none', opacity: 1 }], 500);
+    sfx('whoosh');
+    const v = say(qText || 'Đến lượt các em: ' + q.replace(/<[^>]+>/g, '') + '.', qSay);
+    await wait(700);
+    A($('#tArc'), [{ strokeDashoffset: 0 }, { strokeDashoffset: 326.7 }], { duration: 5000, easing: 'linear' });
+    for (let i = 5; i > 0; i--) { $('#tNum').textContent = i; await wait(1000); }
+    $('#tNum').textContent = '0';
+    await v;
+    if (opt.hold) {
+      $('#tHint').textContent = 'Bấm ▶ khi các em đã có kết quả';
+      await hold();
+    }
+    $('#tHint').textContent = '';
+    sfx('whoosh');
+    A(card, [{ transform: 'rotateY(0)' }, { transform: 'rotateY(180deg)' }], { duration: 750, easing: 'cubic-bezier(.45,.05,.3,1)' });
+    await wait(780);
+    const b = $('#tAns b');
+    pop(b, 500); sfx('ting');
+    const va = say(aSay);
+    if (note) { await wait(900); fadeIn($('#tNote'), 450); }
+    await va;
+    await wait(1400);
+    A(turnEl, [{ opacity: 1 }, { opacity: 0 }], 400);
+    await wait(420);
+    turnEl.hidden = true; turnEl.innerHTML = '';
+  }
+
+  /* ---------- scene reset ---------- */
+  function resetStage({ calcIn = true, board = true, keepLcd = true } = {}) {
+    stage.getAnimations({ subtree: true }).forEach((a) => { if (!(a instanceof CSSAnimation)) a.cancel(); });
+    fx.innerHTML = ''; callouts = null;
+    intro.hidden = true; intro.innerHTML = '';
+    turnEl.hidden = true; turnEl.innerHTML = '';
+    panel.hidden = true; panel.innerHTML = ''; zones.hidden = false;
+    taskEl.innerHTML = ''; chipsEl.innerHTML = ''; rvEl.innerHTML = ''; $('#cmpTag').hidden = true;
+    $('#endcard').hidden = true; $('#holdHint').hidden = true;
+    document.querySelectorAll('.pressed,.hold').forEach((e) => e.classList.remove('pressed', 'hold'));
+    document.querySelectorAll('#cmpTag span').forEach((e) => e.classList.remove('lit'));
+    calcEl.style.transform = calcIn ? '' : 'translateX(-820px)';
+    boardEl.style.opacity = board ? '' : '0';
+    if (!keepLcd) { apply('ac'); calc.slot = null; }
+    lcdRender();
+    setSub('');
+  }
+
+  /* ---------- scenes ---------- */
+  async function scene0() {
+    resetStage({ calcIn: false, board: false, keepLcd: false });
+    progress(0);
+    intro.hidden = false;
+    intro.innerHTML = `<div class="intro-col">
+      <div class="ex m" id="ex1"><span>log 100 = 2</span><span class="arr">→</span><span class="pw">100 = 10<sup>2</sup></span></div>
+      <div class="ex m" id="ex2"><span>log 0,001 = −3</span><span class="arr">→</span><span class="pw">0,001 = 10<sup>−3</sup></span></div>
+      <div class="qbox" id="qb" style="opacity:0"><div class="big">log 6,52 = <span class="qm">?</span></div>
+        <div class="mid">6,52 = 10<span class="qm2" id="qm2">?</span></div><div class="nope" id="nope" style="opacity:0">Không đưa được về lũy thừa của 10</div></div></div>`;
+    const ex1 = $('#ex1'), ex2 = $('#ex2'), qb = $('#qb');
+    ex1.style.opacity = 0; ex2.style.opacity = 0;
+    let v = say('Các em đã tính được log 100, log 0,001 vì đưa được về lũy thừa của 10.');
+    await wait(300);
+    A(ex1, [{ opacity: 0, transform: 'translateY(20px)' }, { opacity: 1, transform: 'none' }], 600);
+    await wait(1300);
+    A(ex2, [{ opacity: 0, transform: 'translateY(20px)' }, { opacity: 1, transform: 'none' }], 600);
+    await v;
+    [ex1, ex2].forEach((e) => A(e, [{ opacity: 1, transform: 'none' }, { opacity: 0.28, transform: 'scale(.6)' }], 600));
+    v = say('Nhưng còn log 6,52 thì sao? Không đưa được về lũy thừa của 10 nữa.');
+    await wait(300);
+    A(qb, [{ opacity: 0, transform: 'scale(.9)' }, { opacity: 1, transform: 'none' }], 500);
+    await wait(1700);
+    const q = $('#qm2');
+    shake(q); sfx('beep'); await wait(600);
+    shake(q); await wait(500);
+    fadeIn($('#nope'), 400);
+    await v;
+    v = say('Lúc này, ta nhờ đến máy tính cầm tay.');
+    A(intro, [{ opacity: 1 }, { opacity: 0, transform: 'scale(.94)' }], 600);
+    await wait(300);
+    sfx('whoosh');
+    A(calcEl, [{ transform: 'translateX(-820px)' }, { transform: 'none' }], { duration: 900, easing: 'cubic-bezier(.2,.9,.25,1)' });
+    A(boardEl, [{ opacity: 0, transform: 'translateX(40px)' }, { opacity: 1, transform: 'none' }], { duration: 700, delay: 350 });
+    await v;
+    await wait(400);
+  }
+
+  async function scene1() {
+    resetStage({ keepLcd: false });
+    progress(1);
+    setTask('Tính <b>log 6,52</b>', '(làm tròn đến chữ số thập phân thứ tư)');
+    await wait(900);
+    let v = say('Bấm phím log. Trên màn hình hiện khuôn có hai ô: ô nhỏ bên dưới là cơ số.');
+    await wait(300);
+    await press('log');
+    await v;
+    v = say('Với log thập phân, cơ số là 10, nên ta bấm 1, 0.');
+    await wait(1600);
+    await keys(['1', '0']);
+    await v;
+    v = say('Bấm mũi tên sang phải để chuyển sang ô thứ hai, nhập 6 chấm 5 2.');
+    await wait(500);
+    await press('right');
+    await wait(700);
+    await keys(['6', 'dot', '5', '2']);
+    await v;
+    v = say('Bấm bằng.');
+    await press('eq');
+    await v;
+    v = say('Máy hiện 0,8142475957.');
+    await rvShow('0.8142475957', 4);
+    await v;
+    v = say('Chữ số thập phân thứ năm là 4, nhỏ hơn 5, nên ta giữ nguyên.');
+    await wait(1200);
+    await rvCut();
+    await rvMark('< 5 → giữ nguyên');
+    await v;
+    v = say('Vậy log 6,52 xấp xỉ 0,8142.');
+    await rvFinish({ up: false, lhs: 'log 6,52', caption: true });
+    await v;
+    await wait(1200);
+    await turn({ q: 'tính <b>log 3,7</b>', lcd: '0.5682017241', ans: 'log 3,7 ≈ <b>0,5682</b>', aSay: 'Đáp án: xấp xỉ 0,5682.' });
+  }
+
+  async function scene2() {
+    resetStage();
+    progress(2);
+    setTask('Tính <b>ln 6,52</b>', '(làm tròn đến chữ số thập phân thứ tư)');
+    await wait(500);
+    await press('ac');
+    await wait(300);
+    const tag = $('#cmpTag'); tag.hidden = false; fadeIn(tag);
+    let v = say('Với lôgarit tự nhiên, cơ số e, ta có phím riêng là ln.');
+    await wait(500);
+    $('#cmpLog').classList.add('lit'); await wait(1100);
+    $('#cmpLog').classList.remove('lit'); $('#cmpLn').classList.add('lit');
+    keyEl('ln').classList.add('hold');
+    await v;
+    v = say('Bấm ln, nhập 6 chấm 5 2, bấm bằng.');
+    await press('ln');
+    await keys(['6', 'dot', '5', '2']);
+    await press('eq');
+    $('#cmpLn').classList.remove('lit');
+    await v;
+    v = say('Máy hiện 1,874874376.');
+    await rvShow('1.874874376', 4);
+    await v;
+    v = say('Chữ số thập phân thứ năm là 7, lớn hơn 5, nên làm tròn lên.');
+    await wait(1200);
+    await rvCut();
+    await rvMark('≥ 5 → làm tròn lên');
+    await v;
+    v = say('Vậy ln 6,52 xấp xỉ 1,8749.');
+    await rvFinish({ up: true, lhs: 'ln 6,52' });
+    await v;
+    await wait(1000);
+    await turn({
+      q: 'tính <b>ln 0,45</b>', lcd: '−0.7985076962', ans: 'ln 0,45 ≈ <b>−0,7985</b>',
+      aSay: 'Đáp án: xấp xỉ −0,7985. Số dưới dấu ln nhỏ hơn 1 nên kết quả âm.',
+      note: 'Số dưới dấu log nhỏ hơn 1 (cơ số 10 hoặc e) thì kết quả âm.'
+    });
+  }
+
+  async function scene3() {
+    resetStage();
+    progress(3);
+    setTask('Tính <b>log<sub>14</sub>17</b>', '(làm tròn đến chữ số thập phân thứ tư)');
+    await wait(500);
+    await press('ac');
+    await wait(300);
+    let v = say('Với cơ số bất kỳ, ta dùng lại phím log có hai ô.');
+    await wait(600);
+    await press('log');
+    showCallouts();
+    await v;
+    v = say('Ô thứ nhất, cơ số: 1, 4.');
+    await wait(900);
+    await keys(['1', '4']);
+    await v;
+    v = say('Bấm mũi tên sang phải. Ô thứ hai, số cần lấy lôgarit: 1, 7.');
+    await press('right');
+    await wait(1700);
+    await keys(['1', '7']);
+    await v;
+    v = say('Bấm bằng.');
+    await wait(300);
+    hideCallouts();
+    await press('eq');
+    await v;
+    v = say('Máy hiện 1,073570215.');
+    await rvShow('1.073570215', 4);
+    await v;
+    v = say('Chữ số thứ năm là 7, ta làm tròn lên.');
+    await rvCut();
+    await rvMark('≥ 5 → làm tròn lên');
+    await v;
+    v = say('Log cơ số 14 của 17 xấp xỉ 1,0736.');
+    await rvFinish({ up: true, lhs: 'log<sub>14</sub>17' });
+    await v;
+    await wait(1000);
+    await turn({
+      q: 'tính <b>log<sub>5</sub>12</b>', qText: 'Đến lượt các em: tính log₅12.', qSay: 'Đến lượt các em: tính log cơ số 5 của 12.', lcd: '1.543959311',
+      ans: 'log<sub>5</sub>12 ≈ <b>1,544<span class="z">0</span></b>',
+      aSay: 'Đáp án: xấp xỉ 1,5440. Chú ý vẫn phải viết đủ chữ số 0 ở cuối.',
+      note: 'Làm tròn đến chữ số thứ tư → vẫn phải viết đủ số 0.'
+    });
+  }
+
+  async function scene4() {
+    resetStage();
+    progress(4);
+    zones.hidden = true; panel.hidden = false;
+    panel.innerHTML = `
+      <div class="zlab">Kiểm chứng kết quả đã tính tay</div>
+      <div class="cmp-head"><span></span><span>Tính tay (đã học)</span><span></span><span>Bấm máy</span><span></span></div>
+      <div class="card" id="cA"><div class="tag">A</div><div class="hand">ln 2 ≈ 0,693<small>Ví dụ 7</small></div><div class="link"><b>=</b></div>
+        <div class="mach"><div class="chips" id="chA" data-sm="1"></div><div class="out" id="oA"></div></div><div class="check">✔</div></div>
+      <div class="card" id="cB"><div class="tag">B</div><div class="hand">log<sub>4</sub>8 = 1,5<small>Ví dụ 4, đổi cơ số</small></div><div class="link"><b>=</b></div>
+        <div class="mach"><div class="chips" id="chB" data-sm="1"></div><div class="out" id="oB"></div></div><div class="check">✔</div>
+        <div class="note" id="nB" style="opacity:0">Chế độ MathI/O: máy hiện phân số trước</div></div>`;
+    [...panel.children].forEach((c, i) => A(c, [{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'none' }], { duration: 450, delay: i * 120 }));
+    let v = say('Hãy dùng máy kiểm tra lại các kết quả đã tính tay.');
+    await wait(700);
+    await press('ac', null);
+    await v;
+    v = say('ln 2 xấp xỉ 0,693, đúng như Ví dụ 7.');
+    const chA = $('#chA'), chB = $('#chB');
+    await keys(['ln', '2', 'eq'], chA);
+    $('#oA').innerHTML = '<span class="lcdv">0.6931471806</span>';
+    fadeIn($('#oA'));
+    await wait(500);
+    await match($('#cA'));
+    await v;
+    v = say('Còn log cơ số 4 của 8: máy hiện dạng phân số 3 phần 2.');
+    await press('ac', null);
+    await keys(['log', '4', 'right', '8', 'eq'], chB);
+    $('#oB').innerHTML = '<span class="lcdv"><span class="lfrac"><span>3</span><span>2</span></span></span>';
+    fadeIn($('#oB')); fadeIn($('#nB'));
+    await v;
+    v = say('Bấm S đổi D để chuyển sang số thập phân, được 1,5.');
+    const sd = keyEl('sd');
+    sd.classList.add('hold');
+    const tip = document.createElement('div');
+    const r = srect(sd);
+    tip.style.cssText = `position:absolute;left:${r.x + r.w / 2}px;top:${r.y - 64}px;transform:translateX(-50%);font:700 24px var(--font-ui);color:#fff;background:#2c261d;padding:8px 14px;border-radius:10px;white-space:nowrap;box-shadow:0 8px 18px rgba(0,0,0,.3)`;
+    tip.textContent = 'đổi phân số ↔ thập phân';
+    fx.appendChild(tip); fadeIn(tip);
+    await wait(1800);
+    await press('sd', chB);
+    $('#oB').innerHTML = '<span class="lcdv">1.5</span>';
+    pop($('#oB').firstChild);
+    await wait(400);
+    await match($('#cB'));
+    await v;
+    A(tip, [{ opacity: 1 }, { opacity: 0 }], 300);
+    v = say('Khớp với kết quả ta đã tính bằng công thức đổi cơ số.');
+    await v;
+    await wait(800);
+  }
+  async function match(card) {
+    card.classList.add('match');
+    A(card.querySelector('.link'), [{ transform: 'scaleX(.2)' }, { transform: 'scaleX(1)' }], 400);
+    await wait(250);
+    pop(card.querySelector('.check'));
+    sfx('ting');
+    await wait(500);
+  }
+
+  async function scene5() {
+    resetStage();
+    progress(5);
+    zones.hidden = true; panel.hidden = false;
+    panel.innerHTML = `
+      <div class="err-h"><span class="n">Lỗi 1</span>Nhập ngược thứ tự cơ số và biểu thức</div>
+      <div class="chips" id="chE"></div>
+      <div class="err-row" id="e1row"></div>
+      <div class="err-h" id="e2h" style="opacity:0;margin-top:14px"><span class="n">Lỗi 2</span>Làm tròn sai yêu cầu</div>
+      <div class="opts" id="opts"></div>`;
+    fadeIn(panel.firstElementChild);
+    let v = say('Hai lỗi các em hay gặp.');
+    await press('ac', null);
+    await v;
+    v = say('Một: nhập ngược thứ tự.');
+    const chE = $('#chE');
+    await keys(['log', '1', '7', 'right', '1', '4', 'eq'], chE);
+    await v;
+    const row = $('#e1row');
+    row.innerHTML = `<div class="rbox" id="wrong"><span class="lcdv">0.9314…</span><span>= log<sub>17</sub>14</span><span class="strike"></span></div><span class="mark x" id="mx">✘</span><span class="why">nhập 17 trước nên máy tính log<sub>17</sub>14</span>
+      <div class="rbox" id="right" style="opacity:0"><span>log<sub>14</sub>17 ≈ <span class="ok">1,0736</span></span></div><span class="mark v" id="mv" style="opacity:0">✔</span><span class="why" id="whyR" style="opacity:0">cơ số 14 nhập trước</span>`;
+    fadeIn($('#wrong'));
+    await wait(500);
+    A($('#wrong .strike'), [{ transform: 'rotate(-8deg) scaleX(0)' }, { transform: 'rotate(-8deg) scaleX(1)' }], 350);
+    pop($('#mx')); shake($('#mx')); sfx('beep');
+    v = say('Phải nhập cơ số trước, rồi mới nhập số dưới dấu log.');
+    await wait(700);
+    await swapSlots();
+    apply('eq'); lcdRender(); A(lcdOut, [{ opacity: 0 }, { opacity: 1 }], 300);
+    fadeIn($('#right')); pop($('#mv')); fadeIn($('#whyR')); sfx('ting');
+    await v;
+    v = say('Hai: làm tròn sai, như lấy thiếu chữ số hoặc chỉ cắt bỏ mà không làm tròn.');
+    fadeIn($('#e2h'));
+    const opts = $('#opts');
+    const list = [
+      ['1,07', 'thiếu chữ số', false],
+      ['1,0735', 'cắt bỏ, không làm tròn', false],
+      ['1,0736', 'đúng: 4 chữ số, làm tròn lên', true]
+    ];
+    for (const [val, why, ok] of list) {
+      const o = document.createElement('div');
+      o.className = 'opt ' + (ok ? 'goodopt' : 'badopt');
+      o.innerHTML = `<div>${val}<small>${why}</small></div><span class="mark ${ok ? 'v' : 'x'}">${ok ? '✔' : '✘'}</span>`;
+      opts.appendChild(o);
+      fadeIn(o, 350);
+      await wait(450);
+      const m = o.querySelector('.mark');
+      pop(m);
+      if (ok) sfx('ting'); else { shake(m); sfx('beep'); }
+      await wait(800);
+    }
+    await v;
+    v = say('Đọc kỹ đề yêu cầu làm tròn đến chữ số nào nhé!');
+    await wait(400);
+    A(panel, [{ opacity: 1 }, { opacity: 0 }], 450);
+    await wait(470);
+    panel.innerHTML = `<div class="sum" id="sum"><h3>Tóm tắt cách bấm</h3>
+      <div class="ln"><span class="lhs">log <i>a</i></span><span class="arrow">→</span><span class="chips" data-k="log 1 0 right a eq"></span></div>
+      <div class="ln"><span class="lhs">ln <i>a</i></span><span class="arrow">→</span><span class="chips" data-k="ln a eq"></span></div>
+      <div class="ln"><span class="lhs">log<sub><i>a</i></sub><i>b</i></span><span class="arrow">→</span><span class="chips" data-k="log a right b eq"></span></div></div>`;
+    panel.querySelectorAll('[data-k]').forEach((c) => c.dataset.k.split(' ').forEach((k) => c.appendChild(makeChip(k, true))));
+    A(panel, [{ opacity: 0 }, { opacity: 1 }], 300);
+    const lines = panel.querySelectorAll('.ln');
+    lines.forEach((l) => (l.style.opacity = 0));
+    A($('#sum h3'), [{ opacity: 0 }, { opacity: 1 }], 300);
+    for (const l of lines) { await wait(300); A(l, [{ opacity: 0, transform: 'translateX(-20px)' }, { opacity: 1, transform: 'none' }], 400); }
+    await v;
+    await wait(3600);
+    setSub('');
+    A(stage.querySelector('#board'), [{ opacity: 1 }, { opacity: 0 }], 800);
+    A(calcEl, [{ opacity: 1 }, { opacity: 0 }], 800);
+    await wait(900);
+  }
+  async function swapSlots() {
+    const b = document.getElementById('sBase'), g = document.getElementById('sArg');
+    // show the boxes again for the swap
+    b.style.outline = g.style.outline = '3px solid #d93a2b';
+    const rb = srect(b), rg = srect(g);
+    const dx = rg.x - rb.x, dy = rg.y - rb.y;
+    A(b, [{ transform: 'translateY(18px)' }, { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - 30}px)`, offset: 0.5 }, { transform: `translate(${dx}px, ${dy + 18}px)` }], { duration: 800, easing: 'ease-in-out' });
+    A(g, [{ transform: 'none' }, { transform: `translate(${-dx * 0.5}px, ${-dy * 0.5 + 40}px)`, offset: 0.5 }, { transform: `translate(${-dx}px, ${-dy}px)` }], { duration: 800, easing: 'ease-in-out' });
+    sfx('whoosh');
+    await wait(850);
+    const t = calc.base; calc.base = calc.arg; calc.arg = t;
+    lcdRender();
+    const nb = document.getElementById('sBase'), ng = document.getElementById('sArg');
+    nb.style.outline = '3px solid #1f9d55'; ng.style.outline = '3px solid #1f9d55';
+    await wait(500);
+  }
+
+  const scenes = [scene0, scene1, scene2, scene3, scene4, scene5];
+  const chapterNames = ['Mở đầu', 'log 6,52', 'ln 6,52', 'log₁₄17', 'Kiểm chứng', 'Lỗi hay gặp'];
+  const chapterAt = [0, 10, 40, 65, 95, 110];
+  let current = -1;
+
+  async function runFrom(n) {
+    gen++;
+    if (window.speechSynthesis) speechSynthesis.cancel();
+    if (paused) setPaused(false);
+    holding = false;
+    if (window.speechSynthesis) speechSynthesis.cancel();
+    running = true;
+    elapsed = chapterAt[n] * 1000;
+    $('#poster').hidden = true;
+    const g = gen;
+    try {
+      for (let i = n; i < scenes.length; i++) {
+        current = i; ui();
+        await scenes[i]();
+      }
+      if (g !== gen) return;
+      running = false;
+      $('#endcard').hidden = false;
+      A($('#endcard'), [{ opacity: 0 }, { opacity: 1 }], 600);
+      window.__done = true;
+      ui();
+    } catch (e) {
+      if (e !== CANCEL) { console.error(e); }
+    }
+  }
+
+  /* ---------- UI ---------- */
+  const chapEl = $('#chapters');
+  chapterNames.forEach((name, i) => {
+    const b = document.createElement('button');
+    b.className = 'chap'; b.textContent = name; b.type = 'button';
+    b.addEventListener('click', () => { audioInit(); runFrom(i); });
+    chapEl.appendChild(b);
+  });
+  function ui() {
+    $('#btnPlay').textContent = !running ? '▶ Phát' : paused ? (holding ? '▶ Xem đáp án' : '▶ Tiếp tục') : '⏸ Dừng';
+    chapEl.querySelectorAll('.chap').forEach((b, i) => b.setAttribute('aria-current', String(i === current && running)));
+    $('#holdHint').hidden = !(paused && holding);
+  }
+  function togglePlay() {
+    audioInit();
+    if (!running) runFrom(0);
+    else setPaused(!paused);
+  }
+  $('#start').addEventListener('click', () => { audioInit(); runFrom(0); });
+  $('#replay').addEventListener('click', () => { audioInit(); runFrom(0); });
+  $('#btnPlay').addEventListener('click', togglePlay);
+  $('#btnRestart').addEventListener('click', () => { audioInit(); runFrom(0); });
+  $('#viewport').addEventListener('click', (e) => { if (running && !e.target.closest('button')) togglePlay(); });
+  $('#btnFull').addEventListener('click', () => {
+    const v = $('#viewport');
+    try {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else if (v.requestFullscreen) v.requestFullscreen().catch(() => {});
+    } catch (e) {}
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.target.closest('input')) return;
+    if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+    else if (e.key === 'ArrowRight') { audioInit(); runFrom(Math.min(scenes.length - 1, Math.max(0, current + 1))); }
+    else if (e.key === 'ArrowLeft') { audioInit(); runFrom(Math.max(0, current - 1)); }
+    else if (e.key === 'f' || e.key === 'F') $('#btnFull').click();
+  });
+  const bind = (id, key, after) => {
+    const el = $(id);
+    try { const s = localStorage.getItem('logvid.' + key); if (s !== null && !el.disabled) el.checked = s === '1'; } catch (e) {}
+    opt[key] = el.checked;
+    el.addEventListener('change', () => {
+      opt[key] = el.checked;
+      try { localStorage.setItem('logvid.' + key, el.checked ? '1' : '0'); } catch (e) {}
+      if (after) after();
+    });
+  };
+  bind('#optSound', 'sound');
+  bind('#optTts', 'tts', () => { if (!opt.tts && window.speechSynthesis) speechSynthesis.cancel(); });
+  bind('#optSubs', 'subs', () => setSub($('#subText').dataset.t || ''));
+  bind('#optHold', 'hold');
+  if (REC) { opt.hold = false; opt.tts = false; opt.subs = true; }
+
+  /* resting frame: calculator showing the first problem, ready to play */
+  apply('log'); calc.base = '10'; calc.arg = '6.52'; apply('eq'); lcdRender();
+  setTask('Tính <b>log 6,52</b>', '(làm tròn đến chữ số thập phân thứ tư)');
+  ui();
+
+  if (REC) {
+    window.__startRec = () => runFrom(0);
+  }
+})();
+</script>
