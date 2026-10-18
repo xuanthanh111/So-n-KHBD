@@ -1,31 +1,36 @@
 # Video: Tính lôgarit bằng máy tính cầm tay
 
-Video minh hoạ (~2 phút 20 giây) cách bấm máy Casio fx‑580VN X để tính
+Video minh hoạ (2 phút 20 giây) cách bấm máy Casio fx‑580VN X để tính
 log 6,52, ln 6,52, log₁₄17, kiểm chứng kết quả tính tay (ln 2, log₄8) và hai
 lỗi hay gặp, dựng theo kịch bản 6 cảnh (cảnh 0 – cảnh 5).
 
 | Tệp | Dùng để |
 | --- | --- |
-| `index.html` | Bản chiếu trên lớp: mở bằng trình duyệt, có nút phát/dừng, chuyển cảnh, tự dừng ở “Đến lượt em”, phụ đề, âm hiệu ứng, đọc lời thoại (nếu máy có giọng tiếng Việt). |
-| `tinh-logarit.mp4` | Bản video 1920×1080 xuất sẵn: có phụ đề và âm hiệu ứng (tách, ting, bíp), **chưa lồng tiếng** — thầy/cô có thể thu giọng đè lên theo phụ đề. Phần “Đến lượt em” chỉ đếm ngược 5 giây, thầy/cô bấm dừng video khi cần. |
-| `xuat-video/` | Script xuất lại MP4 sau khi sửa `index.html`. |
+| `remotion/` | Mã nguồn video (Remotion + React). Máy tính vẽ theo máy Casio fx‑580VN X thật: thân đen viền bạc, màn hình ma trận điểm, cụm phím điều hướng tròn, phím số trắng, DEL/AC xanh, nhãn SHIFT vàng / ALPHA đỏ phía trên phím. |
+| `tinh-logarit.mp4` | Video 1920×1080, 30 fps, 2 phút 20 giây, render từ `remotion/`: có phụ đề và âm hiệu ứng (tách, ting, bíp, vút), **chưa lồng tiếng**. Phần “Đến lượt em” đếm ngược 5 giây; thầy/cô bấm dừng video khi cần thêm thời gian. |
+| `index.html` | Bản chiếu tương tác trên trình duyệt (tự dừng ở “Đến lượt em”, có thể đọc lời thoại). |
 
-## Chiếu trên lớp
+## Sửa và render lại video
 
-Mở `index.html` (cần Internet để tải phông Be Vietnam Pro / VT323; không có
-mạng thì trình duyệt dùng phông thay thế). Phím tắt: `Space` phát/dừng,
-`←` `→` chuyển cảnh, `F` toàn màn hình.
-
-## Xuất lại MP4
-
-Cần Node.js + Playwright (Chromium), Python 3 + numpy, ffmpeg.
+Cần Node.js ≥ 20.
 
 ```bash
-cd video-logarit/xuat-video
-npm i playwright            # nếu chưa có
-node record.mjs out         # ghi khung hình + mốc âm thanh vào out/
-python3 build.py out ../tinh-logarit.mp4
+cd video-logarit/remotion
+npm i
+npm run dev        # mở Remotion Studio để xem/chỉnh
+npm run render     # xuất ra out/tinh-logarit.mp4
 ```
+
+Máy không tải được Chrome Headless Shell của Remotion thì chỉ định trình duyệt có sẵn:
+`npx remotion render TinhLogarit out/tinh-logarit.mp4 --browser-executable=/đường/dẫn/chrome`.
+
+Cấu trúc mã:
+
+- `src/timeline.ts`: toàn bộ kịch bản (phụ đề, từng lần bấm phím, âm hiệu ứng, các mốc hoạt hình) quy ra số khung hình. Sửa lời thoại hoặc thứ tự phím ở đây, thời lượng các cảnh tự tính lại.
+- `src/calc.ts`: bố cục phím và trạng thái màn hình tại mỗi khung hình (tính log/ln thật, hiện 3/2 ở chế độ MathI/O).
+- `src/Calculator.tsx`: hình vẽ máy tính và màn hình.
+- `src/Board.tsx`, `src/Chips.tsx`, `src/Overlays.tsx`: bảng ghi chú, chip phím bay sang, thẻ “Đến lượt em”, phụ đề, mở đầu/kết thúc.
+- `public/fonts`, `public/sfx`: phông Be Vietnam Pro, VT323 và âm hiệu ứng, để render không cần mạng.
 
 ## Số liệu đã kiểm tra
 
