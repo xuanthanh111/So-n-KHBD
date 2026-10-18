@@ -254,43 +254,8 @@ b.begin();
 }
 b.end();
 
-/* ---------- Cảnh 4: Kiểm chứng ---------- */
+/* ---------- Cảnh 4: Kiểm chứng — đã bỏ khỏi video, giữ cảnh rỗng để không đổi số cảnh ---------- */
 b.begin();
-{
-  b.mark("s4.in");
-  let v = b.say("Hãy dùng máy kiểm tra lại các kết quả đã tính tay.");
-  b.wait(0.7);
-  b.press("ac", null);
-  b.until(v);
-  v = b.say("ln 2 xấp xỉ 0,693, đúng như Ví dụ 7.");
-  b.keys(["ln", "2", "eq"], "A");
-  b.mark("s4.outA");
-  b.wait(0.5);
-  b.mark("s4.matchA");
-  b.fx("ting", b.t + sec(0.25));
-  b.wait(0.75);
-  b.until(v);
-  v = b.say("Còn log cơ số 4 của 8: máy hiện dạng phân số 3 phần 2.");
-  b.press("ac", null);
-  b.keys(["log", "4", "right", "8", "eq"], "B");
-  b.mark("s4.outB");
-  b.until(v);
-  v = b.say("Bấm S đổi D để chuyển sang số thập phân, được 1,5.");
-  b.mark("s4.tip");
-  b.hold("sd", b.t, b.t + sec(1.8));
-  b.wait(1.8);
-  b.press("sd", "B");
-  b.mark("s4.dec");
-  b.wait(0.4);
-  b.mark("s4.matchB");
-  b.fx("ting", b.t + sec(0.25));
-  b.wait(0.75);
-  b.until(v);
-  b.mark("s4.tipOut");
-  v = b.say("Khớp với kết quả ta đã tính bằng công thức đổi cơ số.");
-  b.until(v);
-  b.wait(0.8);
-}
 b.end();
 
 /* ---------- Cảnh 5: Hai lỗi hay gặp + tổng kết ---------- */

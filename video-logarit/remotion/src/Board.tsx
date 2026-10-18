@@ -85,7 +85,8 @@ const Rounding: React.FC<{ f: number; p: string; raw: string; up: boolean; note:
   const keptColor = f >= morph + 9 ? COLORS.green : COLORS.creamInk;
   const kept = raw.slice(0, cutAt);
   const finalVal = (up ? kept.slice(0, -1) + String(+kept.slice(-1) + 1) : kept).replace(".", ",");
-  const rollT = interpolate(f, [roll, roll + RV.roll], [0, 1], { ...clamp, easing: Easing.bezier(0.5, -0.3, 0.4, 1.4) });
+  // Chỉ cuộn chữ số cuối lên khi làm tròn lên; giữ nguyên thì đứng yên.
+  const rollT = up ? interpolate(f, [roll, roll + RV.roll], [0, 1], { ...clamp, easing: Easing.bezier(0.5, -0.3, 0.4, 1.4) }) : 0;
   const morphT = ramp(f, morph, 12);
 
   return (
@@ -163,70 +164,9 @@ const Rounding: React.FC<{ f: number; p: string; raw: string; up: boolean; note:
   );
 };
 
-/* ---------- cảnh 4: kiểm chứng ---------- */
 const LcdVal: React.FC<{ children: React.ReactNode; style?: React.CSSProperties }> = ({ children, style }) => (
   <span style={{ fontFamily: LCD_FONT, fontSize: 46, background: COLORS.lcd, color: COLORS.lcdInk, borderRadius: 8, padding: "0 12px", display: "inline-flex", alignItems: "center", ...style }}>{children}</span>
 );
-const Frac: React.FC<{ n: number; d: number; size: number }> = ({ n, d, size }) => (
-  <span style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", fontSize: size, lineHeight: 0.95 }}>
-    <span style={{ borderBottom: `2px solid ${COLORS.lcdInk}`, padding: "0 5px 2px" }}>{n}</span>
-    <span style={{ paddingTop: 3 }}>{d}</span>
-  </span>
-);
-
-const Card: React.FC<{ f: number; top: number; h: number; tag: string; hand: React.ReactNode; note: string; matchAt: number; out: React.ReactNode; enter: number; footnote?: React.ReactNode }> = ({ f, top, h, tag, hand, note, matchAt, out, enter, footnote }) => {
-  const matched = f >= matchAt;
-  const linkT = ramp(f, matchAt, 12);
-  return (
-    <div style={{ position: "absolute", left: 940, top, width: 900, height: h, background: "#fff", border: "2px solid #ecdfc3", borderRadius: 18, ...fadeUp(f, enter, 14, 16) }}>
-      <div style={{ position: "absolute", left: 20, top: h / 2 - 27, width: 54, height: 54, borderRadius: 14, background: COLORS.orange, color: "#fff", fontFamily: UI_FONT, fontWeight: 800, fontSize: 28, display: "flex", alignItems: "center", justifyContent: "center" }}>{tag}</div>
-      <div style={{ position: "absolute", left: 96, top: h / 2 - 40, fontFamily: UI_FONT, fontWeight: 700, fontSize: 40, color: COLORS.creamInk }}>
-        {hand}
-        <div style={{ fontSize: 20, fontWeight: 500, color: "#7d6c50", marginTop: 4 }}>{note}</div>
-      </div>
-      <div style={{ position: "absolute", left: 412, top: h / 2 - 4, width: 70, height: 8, borderRadius: 4, background: matched ? COLORS.green : "#e4dccb", boxShadow: matched ? `0 0 ${18 * linkT}px ${4 * linkT}px rgba(31,157,85,.55)` : "none", scale: matched ? `${0.2 + 0.8 * linkT} 1` : "1 1" }} />
-      <div style={{ position: "absolute", left: 432, top: h / 2 - 26, width: 30, textAlign: "center", fontFamily: UI_FONT, fontWeight: 800, fontSize: 34, color: matched ? COLORS.green : "#b9ae98", background: "#fff" }}>=</div>
-      <div style={{ position: "absolute", left: 500, top: h / 2 + 2, fontFamily: UI_FONT }}>{out}</div>
-      <div style={{ position: "absolute", right: 22, top: h / 2 - 27, width: 54, height: 54, borderRadius: "50%", background: COLORS.green, color: "#fff", fontFamily: UI_FONT, fontWeight: 800, fontSize: 30, display: "flex", alignItems: "center", justifyContent: "center", ...pop(f, matchAt + 7, 14) }}>✔</div>
-      {footnote}
-    </div>
-  );
-};
-
-export const VerifyPanel: React.FC<{ f: number }> = ({ f }) => {
-  const enter = m("s4.in");
-  const outA = m("s4.outA");
-  const outB = m("s4.outB");
-  const dec = m("s4.dec");
-  return (
-    <>
-      <div style={{ ...label, left: 940, top: 120, ...fadeUp(f, enter) }}>Kiểm chứng kết quả đã tính tay</div>
-      <div style={{ ...label, left: 1036, top: 158, letterSpacing: 1.6, ...fadeUp(f, enter) }}>Tính tay (đã học)</div>
-      <div style={{ ...label, left: 1440, top: 158, letterSpacing: 1.6, ...fadeUp(f, enter) }}>Bấm máy</div>
-      <Card
-        f={f} top={192} h={250} tag="A" enter={enter + 4} hand={<>ln 2 ≈ 0,693</>} note="Ví dụ 7" matchAt={m("s4.matchA")}
-        out={f >= outA ? <span style={{ display: "inline-block", ...fadeUp(f, outA) }}><LcdVal>0.6931471806</LcdVal></span> : null}
-      />
-      <Card
-        f={f} top={462} h={290} tag="B" enter={enter + 8} hand={<>log<Sub>4</Sub>8 = 1,5</>} note="Ví dụ 4, đổi cơ số" matchAt={m("s4.matchB")}
-        out={
-          f >= dec ? (
-            <span style={{ display: "inline-block", ...pop(f, dec, 14) }}><LcdVal>1.5</LcdVal></span>
-          ) : f >= outB ? (
-            <span style={{ display: "inline-block", ...fadeUp(f, outB) }}><LcdVal style={{ padding: "4px 14px" }}><Frac n={3} d={2} size={34} /></LcdVal></span>
-          ) : null
-        }
-        footnote={
-          f >= outB ? (
-            <div style={{ position: "absolute", right: 22, bottom: 12, fontFamily: UI_FONT, fontSize: 18, color: "#7d6c50", ...fadeUp(f, outB) }}>
-              Chế độ MathI/O: máy hiện phân số trước, bấm S⇔D để ra số thập phân
-            </div>
-          ) : null
-        }
-      />
-    </>
-  );
-};
 
 /* ---------- cảnh 5: lỗi hay gặp + tổng kết ---------- */
 const Mark: React.FC<{ ok: boolean; style?: React.CSSProperties }> = ({ ok, style }) => (
@@ -335,21 +275,3 @@ export const Summary: React.FC<{ f: number }> = ({ f }) => {
     </div>
   );
 };
-
-export const Tooltip: React.FC<{ f: number; x: number; y: number }> = ({ f, x, y }) => {
-  const a = m("s4.tip");
-  const b = m("s4.tipOut");
-  if (f < a || f > b + 10) return null;
-  return (
-    <div
-      style={{
-        position: "absolute", left: x, top: y - 70, translate: "-50% 0px", fontFamily: UI_FONT, fontWeight: 700, fontSize: 24, color: "#fff",
-        background: COLORS.creamInk, padding: "8px 14px", borderRadius: 10, whiteSpace: "nowrap", boxShadow: "0 8px 18px rgba(0,0,0,.3)",
-        opacity: ramp(f, a, 10) * fadeOut(f, b, 10), zIndex: 50,
-      }}
-    >
-      đổi phân số ↔ thập phân
-    </div>
-  );
-};
-

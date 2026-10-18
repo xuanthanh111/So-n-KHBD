@@ -2,9 +2,8 @@ import React from "react";
 import { AbsoluteFill, Sequence, staticFile, useCurrentFrame } from "remotion";
 import { Audio } from "@remotion/media";
 import { sceneAt } from "./anim";
-import { BoardFrame, ErrorsPanel, Summary, Tooltip, VerifyPanel, Zones } from "./Board";
+import { BoardFrame, ErrorsPanel, Summary, Zones } from "./Board";
 import { Calculator } from "./Calculator";
-import { keyCenter } from "./calc";
 import { Chips } from "./Chips";
 import { loadFonts } from "./fonts";
 import { Callouts, EndCard, Intro, Subtitles, TopBar, Turn, TURNS } from "./Overlays";
@@ -13,7 +12,7 @@ import { COLORS } from "./theme";
 
 loadFonts();
 
-const SCENE_NAMES = ["Cảnh 0 · Mở đầu", "Cảnh 1 · log 6,52", "Cảnh 2 · ln 6,52", "Cảnh 3 · log₁₄17", "Cảnh 4 · Kiểm chứng", "Cảnh 5 · Lỗi hay gặp"];
+const SCENE_NAMES = ["Cảnh 0 · Mở đầu", "Cảnh 1 · log 6,52", "Cảnh 2 · ln 6,52", "Cảnh 3 · log₁₄17", "Cảnh 4 · Kiểm chứng (đã bỏ)", "Cảnh 5 · Lỗi hay gặp"];
 const VOLUME = { click: 0.7, ting: 0.6, beep: 0.6, whoosh: 0.5 };
 // Hiệu ứng âm thanh nhỏ lại khi đang có lời đọc.
 const DUCK = 0.45;
@@ -22,7 +21,6 @@ const speaking = (frame: number) => TL.voice.some((v) => frame >= v.frame && fra
 export const LogarithmVideo: React.FC = () => {
   const f = useCurrentFrame();
   const scene = sceneAt(f);
-  const sd = keyCenter("sd");
   return (
     <AbsoluteFill
       style={{
@@ -33,21 +31,21 @@ export const LogarithmVideo: React.FC = () => {
       }}
     >
       {/* Mốc cảnh trên timeline của Studio */}
-      {TL.scenes.map((s, i) => (
-        <Sequence key={i} name={SCENE_NAMES[i]} from={s.start} durationInFrames={Math.max(1, s.end - s.start)} layout="none">
-          {null}
-        </Sequence>
-      ))}
+      {TL.scenes.map((s, i) =>
+        s.end > s.start ? (
+          <Sequence key={i} name={SCENE_NAMES[i]} from={s.start} durationInFrames={s.end - s.start} layout="none">
+            {null}
+          </Sequence>
+        ) : null,
+      )}
 
       <TopBar f={f} scene={scene} />
       <BoardFrame f={f} />
       {scene >= 1 && scene <= 3 ? <Zones f={f} scene={scene} /> : null}
-      {scene === 4 ? <VerifyPanel f={f} /> : null}
       {scene === 5 ? <ErrorsPanel f={f} /> : null}
       {scene === 5 ? <Summary f={f} /> : null}
       <Calculator />
       {scene === 3 ? <Callouts f={f} /> : null}
-      {scene === 4 ? <Tooltip f={f} x={sd.x} y={sd.y} /> : null}
       <Chips f={f} scene={scene} />
       <Intro f={f} />
       <Subtitles f={f} />
