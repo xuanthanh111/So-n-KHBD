@@ -1,0 +1,192 @@
+[
+ {
+  "id": "01",
+  "subtitle": "Các em đã tính được log 100, log 0,001 vì đưa được về lũy thừa của 10.",
+  "spoken": "Các em đã tính được lốc 100, lốc 0 phẩy 001 vì đưa được về lũy thừa của 10."
+ },
+ {
+  "id": "02",
+  "subtitle": "Nhưng còn log 6,52 thì sao? Không đưa được về lũy thừa của 10 nữa.",
+  "spoken": "Nhưng còn lốc 6 phẩy 52 thì sao? Không đưa được về lũy thừa của 10 nữa."
+ },
+ {
+  "id": "03",
+  "subtitle": "Lúc này, ta nhờ đến máy tính cầm tay.",
+  "spoken": "Lúc này, ta nhờ đến máy tính cầm tay."
+ },
+ {
+  "id": "04",
+  "subtitle": "Bấm phím log. Trên màn hình hiện khuôn có hai ô: ô nhỏ bên dưới là cơ số.",
+  "spoken": "Bấm phím lốc. Trên màn hình hiện khuôn có hai ô: ô nhỏ bên dưới là cơ số."
+ },
+ {
+  "id": "05",
+  "subtitle": "Với log thập phân, cơ số là 10, nên ta bấm 1, 0.",
+  "spoken": "Với lốc thập phân, cơ số là 10, nên ta bấm 1, 0."
+ },
+ {
+  "id": "06",
+  "subtitle": "Bấm mũi tên sang phải để chuyển sang ô thứ hai, nhập 6 chấm 5 2.",
+  "spoken": "Bấm mũi tên sang phải để chuyển sang ô thứ hai, nhập 6 chấm 5 2."
+ },
+ {
+  "id": "07",
+  "subtitle": "Bấm bằng.",
+  "spoken": "Bấm bằng."
+ },
+ {
+  "id": "08",
+  "subtitle": "Máy hiện 0,8142475957.",
+  "spoken": "Máy hiện 0 phẩy 8 1 4 2 4 7 5 9 5 7."
+ },
+ {
+  "id": "09",
+  "subtitle": "Chữ số thập phân thứ năm là 4, nhỏ hơn 5, nên ta giữ nguyên.",
+  "spoken": "Chữ số thập phân thứ năm là 4, nhỏ hơn 5, nên ta giữ nguyên."
+ },
+ {
+  "id": "10",
+  "subtitle": "Vậy log 6,52 xấp xỉ 0,8142.",
+  "spoken": "Vậy lốc 6 phẩy 52 xấp xỉ 0 phẩy 8142."
+ },
+ {
+  "id": "11",
+  "subtitle": "Đến lượt các em: tính log 3,7.",
+  "spoken": "Đến lượt các em: tính lốc 3 phẩy 7."
+ },
+ {
+  "id": "12",
+  "subtitle": "Đáp án: xấp xỉ 0,5682.",
+  "spoken": "Đáp án: xấp xỉ 0 phẩy 5682."
+ },
+ {
+  "id": "13",
+  "subtitle": "Với lôgarit tự nhiên, cơ số e, ta có phím riêng là ln.",
+  "spoken": "Với lôgarit tự nhiên, cơ số e, ta có phím riêng là lờ nờ."
+ },
+ {
+  "id": "14",
+  "subtitle": "Bấm ln, nhập 6 chấm 5 2, bấm bằng.",
+  "spoken": "Bấm lờ nờ, nhập 6 chấm 5 2, bấm bằng."
+ },
+ {
+  "id": "15",
+  "subtitle": "Máy hiện 1,874874376.",
+  "spoken": "Máy hiện 1 phẩy 8 7 4 8 7 4 3 7 6."
+ },
+ {
+  "id": "16",
+  "subtitle": "Chữ số thập phân thứ năm là 7, lớn hơn 5, nên làm tròn lên.",
+  "spoken": "Chữ số thập phân thứ năm là 7, lớn hơn 5, nên làm tròn lên."
+ },
+ {
+  "id": "17",
+  "subtitle": "Vậy ln 6,52 xấp xỉ 1,8749.",
+  "spoken": "Vậy lờ nờ 6 phẩy 52 xấp xỉ 1 phẩy 8749."
+ },
+ {
+  "id": "18",
+  "subtitle": "Đến lượt các em: tính ln 0,45.",
+  "spoken": "Đến lượt các em: tính lờ nờ 0 phẩy 45."
+ },
+ {
+  "id": "19",
+  "subtitle": "Đáp án: xấp xỉ −0,7985. Số dưới dấu ln nhỏ hơn 1 nên kết quả âm.",
+  "spoken": "Đáp án: xấp xỉ âm 0 phẩy 7985. Số dưới dấu lờ nờ nhỏ hơn 1 nên kết quả âm."
+ },
+ {
+  "id": "20",
+  "subtitle": "Với cơ số bất kỳ, ta dùng lại phím log có hai ô.",
+  "spoken": "Với cơ số bất kỳ, ta dùng lại phím lốc có hai ô."
+ },
+ {
+  "id": "21",
+  "subtitle": "Ô thứ nhất, cơ số: 1, 4.",
+  "spoken": "Ô thứ nhất, cơ số: 1, 4."
+ },
+ {
+  "id": "22",
+  "subtitle": "Bấm mũi tên sang phải. Ô thứ hai, số cần lấy lôgarit: 1, 7.",
+  "spoken": "Bấm mũi tên sang phải. Ô thứ hai, số cần lấy lôgarit: 1, 7."
+ },
+ {
+  "id": "23",
+  "subtitle": "Bấm bằng.",
+  "spoken": "Bấm bằng."
+ },
+ {
+  "id": "24",
+  "subtitle": "Máy hiện 1,073570215.",
+  "spoken": "Máy hiện 1 phẩy 0 7 3 5 7 0 2 1 5."
+ },
+ {
+  "id": "25",
+  "subtitle": "Chữ số thứ năm là 7, ta làm tròn lên.",
+  "spoken": "Chữ số thứ năm là 7, ta làm tròn lên."
+ },
+ {
+  "id": "26",
+  "subtitle": "Log cơ số 14 của 17 xấp xỉ 1,0736.",
+  "spoken": "Lốc cơ số 14 của 17 xấp xỉ 1 phẩy 0736."
+ },
+ {
+  "id": "27",
+  "subtitle": "Đến lượt các em: tính log₅12.",
+  "spoken": "Đến lượt các em: tính lốc cơ số 5 của 12."
+ },
+ {
+  "id": "28",
+  "subtitle": "Đáp án: xấp xỉ 1,5440. Chú ý vẫn phải viết đủ chữ số 0 ở cuối.",
+  "spoken": "Đáp án: xấp xỉ 1 phẩy 5440. Chú ý vẫn phải viết đủ chữ số 0 ở cuối."
+ },
+ {
+  "id": "29",
+  "subtitle": "Hãy dùng máy kiểm tra lại các kết quả đã tính tay.",
+  "spoken": "Hãy dùng máy kiểm tra lại các kết quả đã tính tay."
+ },
+ {
+  "id": "30",
+  "subtitle": "ln 2 xấp xỉ 0,693, đúng như Ví dụ 7.",
+  "spoken": "Lờ nờ 2 xấp xỉ 0 phẩy 693, đúng như Ví dụ 7."
+ },
+ {
+  "id": "31",
+  "subtitle": "Còn log cơ số 4 của 8: máy hiện dạng phân số 3 phần 2.",
+  "spoken": "Còn lốc cơ số 4 của 8: máy hiện dạng phân số 3 phần 2."
+ },
+ {
+  "id": "32",
+  "subtitle": "Bấm S đổi D để chuyển sang số thập phân, được 1,5.",
+  "spoken": "Bấm ét đổi đê để chuyển sang số thập phân, được 1 phẩy 5."
+ },
+ {
+  "id": "33",
+  "subtitle": "Khớp với kết quả ta đã tính bằng công thức đổi cơ số.",
+  "spoken": "Khớp với kết quả ta đã tính bằng công thức đổi cơ số."
+ },
+ {
+  "id": "34",
+  "subtitle": "Hai lỗi các em hay gặp.",
+  "spoken": "Hai lỗi các em hay gặp."
+ },
+ {
+  "id": "35",
+  "subtitle": "Một: nhập ngược thứ tự.",
+  "spoken": "Một: nhập ngược thứ tự."
+ },
+ {
+  "id": "36",
+  "subtitle": "Phải nhập cơ số trước, rồi mới nhập số dưới dấu log.",
+  "spoken": "Phải nhập cơ số trước, rồi mới nhập số dưới dấu lốc."
+ },
+ {
+  "id": "37",
+  "subtitle": "Hai: làm tròn sai, như lấy thiếu chữ số hoặc chỉ cắt bỏ mà không làm tròn.",
+  "spoken": "Hai: làm tròn sai, như lấy thiếu chữ số hoặc chỉ cắt bỏ mà không làm tròn."
+ },
+ {
+  "id": "38",
+  "subtitle": "Đọc kỹ đề yêu cầu làm tròn đến chữ số nào nhé!",
+  "spoken": "Đọc kỹ đề yêu cầu làm tròn đến chữ số nào nhé!"
+ }
+]
