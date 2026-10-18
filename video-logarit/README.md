@@ -24,6 +24,11 @@ npm run render     # xuất ra out/tinh-logarit.mp4
 Máy không tải được Chrome Headless Shell của Remotion thì chỉ định trình duyệt có sẵn:
 `npx remotion render TinhLogarit out/tinh-logarit.mp4 --browser-executable=/đường/dẫn/chrome`.
 
+Lồng tiếng: đặt file giọng đọc từng câu vào `remotion/public/voice/01.mp3` … `38.mp3`
+(đúng thứ tự `remotion/voice/loi-doc.json`), chạy `node voice/durations.mjs` trong
+`remotion/` rồi render lại. Mỗi câu tự kéo dài theo thời lượng file, hiệu ứng âm
+thanh nhỏ lại khi đang đọc. Câu nào chưa có file thì vẫn dùng thời lượng ước tính.
+
 Cấu trúc mã:
 
 - `src/timeline.ts`: toàn bộ kịch bản (phụ đề, từng lần bấm phím, âm hiệu ứng, các mốc hoạt hình) quy ra số khung hình. Sửa lời thoại hoặc thứ tự phím ở đây, thời lượng các cảnh tự tính lại.

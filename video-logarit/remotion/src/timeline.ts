@@ -2,6 +2,9 @@
 // và các mốc hoạt hình đều được tính ra số khung hình (frame) tại đây.
 // Các component chỉ đọc dữ liệu này theo useCurrentFrame().
 
+import VOICE_DUR from "../voice/durations.json";
+import VOICE_LINES from "../voice/loi-doc.json";
+
 export const FPS = 30;
 export const sec = (s: number) => Math.round(s * FPS);
 
@@ -16,6 +19,10 @@ export type Sub = { from: number; to: number; text: string };
 export type SfxKind = "click" | "ting" | "beep" | "whoosh";
 export type Sfx = { frame: number; kind: SfxKind };
 export type Hold = { key: KeyId; from: number; to: number };
+/** Một câu lồng tiếng: file public/voice/<id>.mp3 phát từ khung hình `frame`. */
+export type Voice = { frame: number; to: number; id: string };
+
+const voiceDur: Record<string, number> = VOICE_DUR;
 
 /** Mỗi lần bấm phím kéo dài 0,6 s: 0,2 s phóng to + 0,4 s lún/nhả. */
 export const PRESS = sec(0.6);
@@ -33,6 +40,7 @@ class Builder {
   subs: Sub[] = [];
   sfx: Sfx[] = [];
   holds: Hold[] = [];
+  voice: Voice[] = [];
   marks: Record<string, number> = {};
   scenes: { start: number; end: number }[] = [];
 
@@ -53,9 +61,17 @@ class Builder {
   until(frame: number) {
     this.t = Math.max(this.t, frame);
   }
-  /** Phụ đề + lời thoại. Trả về khung hình mà câu nói kết thúc (≈ 17 ký tự/giây). */
+  /**
+   * Phụ đề + lời thoại. Trả về khung hình mà câu nói kết thúc.
+   * Câu thứ n khớp với mục thứ n trong voice/loi-doc.json; khi đã có file giọng đọc
+   * (voice/durations.json) thì dùng đúng thời lượng file, không thì ước ≈ 17 ký tự/giây.
+   */
   say(text: string) {
-    const dur = sec(Math.max(1.2, text.length * 0.058));
+    const line = VOICE_LINES[this.subs.length];
+    if (!line || line.subtitle !== text) throw new Error(`Câu ${this.subs.length + 1} không khớp voice/loi-doc.json: ${text}`);
+    const real = voiceDur[line.id];
+    const dur = real ? sec(real + 0.15) : sec(Math.max(1.2, text.length * 0.058));
+    if (real) this.voice.push({ frame: this.t, to: this.t + dur, id: line.id });
     this.subs.push({ from: this.t, to: this.t + dur + sec(0.6), text });
     return this.t + dur;
   }
@@ -330,6 +346,7 @@ export const TL = {
   subs: b.subs,
   sfx: b.sfx,
   holds: b.holds,
+  voice: b.voice,
   marks: b.marks,
   scenes: b.scenes,
   duration: b.t,

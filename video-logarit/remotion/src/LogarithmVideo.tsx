@@ -15,6 +15,9 @@ loadFonts();
 
 const SCENE_NAMES = ["Cảnh 0 · Mở đầu", "Cảnh 1 · log 6,52", "Cảnh 2 · ln 6,52", "Cảnh 3 · log₁₄17", "Cảnh 4 · Kiểm chứng", "Cảnh 5 · Lỗi hay gặp"];
 const VOLUME = { click: 0.7, ting: 0.6, beep: 0.6, whoosh: 0.5 };
+// Hiệu ứng âm thanh nhỏ lại khi đang có lời đọc.
+const DUCK = 0.45;
+const speaking = (frame: number) => TL.voice.some((v) => frame >= v.frame && frame < v.to);
 
 export const LogarithmVideo: React.FC = () => {
   const f = useCurrentFrame();
@@ -54,7 +57,10 @@ export const LogarithmVideo: React.FC = () => {
       <EndCard f={f} />
 
       {TL.sfx.map((s, i) => (
-        <Audio key={i} from={s.frame} src={staticFile(`sfx/${s.kind}.wav`)} volume={VOLUME[s.kind]} />
+        <Audio key={i} from={s.frame} src={staticFile(`sfx/${s.kind}.wav`)} volume={VOLUME[s.kind] * (speaking(s.frame) ? DUCK : 1)} />
+      ))}
+      {TL.voice.map((v) => (
+        <Audio key={`v${v.id}`} from={v.frame} src={staticFile(`voice/${v.id}.mp3`)} />
       ))}
     </AbsoluteFill>
   );
